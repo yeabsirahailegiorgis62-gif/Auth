@@ -73,7 +73,7 @@ const initGooglePassport = () => {
                 name,
                 email,
                 googleId,
-                passwordHash: "",
+                passwordHash: null,
               },
             });
           }

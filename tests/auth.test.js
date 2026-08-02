@@ -144,9 +144,8 @@ test("repeated bad logins lock the account", async () => {
     }),
   });
 
-  assert.equal(thirdAttempt.status, 403);
-  assert.match(String(thirdAttempt.body?.message || ""), /warning/i);
-  assert.match(String(thirdAttempt.body?.message || ""), /30 minutes/i);
+  assert.equal(thirdAttempt.status, 429);
+  assert.match(String(thirdAttempt.body?.message || ""), /too many failed login attempts/i);
 });
 
 test("google auth entrypoint redirects to Google when configured", async () => {

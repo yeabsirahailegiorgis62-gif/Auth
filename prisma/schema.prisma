@@ -2,35 +2,188 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "postgresql"
 }
-
 
 model User {
   id                  Int       @id @default(autoincrement())
   name                String
   email               String    @unique
-  passwordHash        String
+  passwordHash        String?
   googleId            String?
+  avatarUrl           String?
+  bio                 String?
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  sessions Session[]
+  sessions         Session[]
+  documents        Document[]      @relation("UserOwnedDocuments")
+  shares           DocumentShare[]
+  invitedShares    DocumentShare[] @relation("UserInvitedShares")
+  revisions        Revision[]
+  createdThreads   CommentThread[] @relation("UserCreatedThreads")
+  resolvedThreads  CommentThread[] @relation("UserResolvedThreads")
+  comments         Comment[]
+  favorites        Favorite[]
+  activities       ActivityLog[]
+  notifications    Notification[]
 }
-
 
 model Session {
   id               Int      @id @default(autoincrement())
   userId           Int
-  refreshTokenHash String
+  refreshTokenHash String   @unique
   device           String?
   ipAddress        String?
   createdAt        DateTime @default(now())
   expiresAt        DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  title        String   @default("Untitled Document")
+  content      String   @default("")
+  ownerId      Int
+  isArchived   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastOpenedAt DateTime @default(now())
+
+  owner          User            @relation("UserOwnedDocuments", fields: [ownerId], references: [id], onDelete: Cascade)
+  shares         DocumentShare[]
+  revisions      Revision[]
+  commentThreads CommentThread[]
+  favorites      Favorite[]
+  activities     ActivityLog[]
+  notifications  Notification[]
+
+  @@index([ownerId])
+  @@index([isArchived])
+  @@index([lastOpenedAt])
+  @@index([updatedAt])
+}
+
+model DocumentShare {
+  id          String   @id @default(uuid())
+  documentId  String
+  userId      Int
+  role        String   @default("VIEWER") // VIEWER | COMMENTER | EDITOR | OWNER
+  invitedById Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  document  Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy User?    @relation("UserInvitedShares", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@unique([documentId, userId])
+  @@index([userId])
+  @@index([documentId])
+}
+
+model Revision {
+  id         String   @id @default(uuid())
+  documentId String
+  authorId   Int
+  content    String
+  version    Int      @default(1)
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  author   User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
+
+model CommentThread {
+  id           String    @id @default(uuid())
+  documentId   String
+  createdBy    Int
+  selectedText String    @default("")
+  fromPos      Int?
+  toPos        Int?
+  resolved     Boolean   @default(false)
+  resolvedById Int?
+  resolvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  creator    User      @relation("UserCreatedThreads", fields: [createdBy], references: [id], onDelete: Cascade)
+  resolver   User?     @relation("UserResolvedThreads", fields: [resolvedById], references: [id], onDelete: SetNull)
+  comments   Comment[]
+
+  @@index([documentId])
+  @@index([createdBy])
+  @@index([resolved])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  threadId  String
+  authorId  Int
+  content   String
+  edited    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  thread CommentThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([authorId])
+}
+
+model Favorite {
+  id         String   @id @default(uuid())
+  userId     Int
+  documentId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, documentId])
+  @@index([userId])
+  @@index([documentId])
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  userId     Int
+  documentId String?
+  action     String // DOCUMENT_CREATED | DOCUMENT_EDITED | DOCUMENT_SHARED | COMMENT_CREATED | VERSION_RESTORED | DOCUMENT_TRASHED | DOCUMENT_RESTORED
+  metadata   String? // Serialized JSON details
+  createdAt  DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([documentId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     Int
+  documentId String?
+  type       String // DOCUMENT_SHARED | COMMENT_REPLIED | THREAD_RESOLVED | ROLE_UPDATED
+  message    String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
 }

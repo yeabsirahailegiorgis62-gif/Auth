@@ -143,6 +143,12 @@ const login = async (req, res) => {
       });
     }
 
+    if (!user.passwordHash) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (!passwordMatch) {

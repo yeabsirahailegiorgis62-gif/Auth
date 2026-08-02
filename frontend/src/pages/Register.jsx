@@ -93,8 +93,8 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-xl rounded-3xl bg-white p-8 shadow-xl shadow-slate-200">
+    <div className="min-h-screen bg-slate-50 px-4 py-12 sm:px-6 lg:px-12 flex items-center justify-start">
+      <div className="w-full max-w-xl rounded-3xl bg-white p-8 shadow-xl shadow-slate-200">
         <div className="mb-6 flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1">
           <Link
             to="/login"

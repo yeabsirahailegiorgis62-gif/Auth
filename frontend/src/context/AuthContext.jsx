@@ -57,7 +57,11 @@ export function AuthProvider({ children }) {
     setMessage(null);
 
     const response = await api.post("/auth/register", data);
-    setMessage("Account created successfully. Please log in.");
+    if (response.data?.accessToken) {
+      setTokens(response.data);
+      setUser(response.data.user);
+    }
+    setMessage("Account created successfully.");
     return response;
   };
 

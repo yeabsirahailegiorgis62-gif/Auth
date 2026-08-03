@@ -83,18 +83,21 @@ export default function Register() {
         email: values.email,
         password: values.password,
       });
-      resetForm();
-      setTimeout(() => navigate("/login"), 800);
+      navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message ?? "Unable to register.");
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Unable to connect to backend server. Please ensure backend is running.";
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-xl rounded-3xl bg-white p-8 shadow-xl shadow-slate-200">
+    <div className="min-h-screen bg-slate-50 px-4 py-12 sm:px-6 lg:px-12 flex items-center justify-start">
+      <div className="w-full max-w-xl rounded-3xl bg-white p-8 shadow-xl shadow-slate-200">
         <div className="mb-6 flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1">
           <Link
             to="/login"

@@ -21,7 +21,7 @@ const setRefreshTokenCookie = (res, refreshToken) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.COOKIE_SECURE === "true",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 };
@@ -30,7 +30,7 @@ const clearRefreshTokenCookie = (res) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.COOKIE_SECURE === "true",
   });
 };
 
@@ -81,12 +81,19 @@ const register = async (req, res) => {
       },
     });
 
+    const { accessToken, refreshToken } = await createSessionForUser(user, req);
+    setRefreshTokenCookie(res, refreshToken);
+
     res.status(201).json({
       message: "User created successfully",
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
+        avatarUrl: user.avatarUrl,
+        bio: user.bio,
       },
     });
   } catch (error) {
@@ -140,6 +147,12 @@ const login = async (req, res) => {
           lockedUntil: null,
           failedLoginAttempts: 0,
         },
+      });
+    }
+
+    if (!user.passwordHash) {
+      return res.status(401).json({
+        message: "Invalid email or password",
       });
     }
 

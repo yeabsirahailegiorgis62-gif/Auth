@@ -1,6 +1,7 @@
 const SOCKET_EVENTS = require("./events");
 const collaborationService = require("./collaboration.service");
 const permissionService = require("../services/permission.service");
+const logger = require("../config/logger");
 
 function registerDocumentRoomHandlers(io, socket) {
   const activeRooms = new Set();
@@ -17,12 +18,12 @@ function registerDocumentRoomHandlers(io, socket) {
 
       const accessCheck = await collaborationService.validateRoomAccess(
         socket.user.id,
-        documentId,
+        documentId
       );
 
       if (!accessCheck.allowed) {
-        console.warn(
-          `[Room Guard] User ${socket.user.id} denied access to doc ${documentId}: ${accessCheck.reason}`,
+        logger.warn(
+          `[Room Guard] User ${socket.user.id} denied access to doc ${documentId}: ${accessCheck.reason}`
         );
         if (typeof callback === "function") {
           callback({ success: false, error: accessCheck.reason });
@@ -37,8 +38,8 @@ function registerDocumentRoomHandlers(io, socket) {
       socket.join(roomName);
       activeRooms.add(roomName);
 
-      console.log(
-        `[Socket Room] User ${socket.user.email} (${socket.user.id}) joined ${roomName}`,
+      logger.info(
+        `[Socket Room] User ${socket.user.email} (${socket.user.id}) joined ${roomName}`
       );
 
       // Notify other room members
@@ -60,7 +61,7 @@ function registerDocumentRoomHandlers(io, socket) {
         callback({ success: true, room: roomName });
       }
     } catch (error) {
-      console.error("[Socket Room Join Error]:", error);
+      logger.error("[Socket Room Join Error]:", error);
       socket.emit(SOCKET_EVENTS.SOCKET_ERROR, {
         message: "Failed to join document room",
       });
@@ -89,12 +90,12 @@ function registerDocumentRoomHandlers(io, socket) {
       const canEdit = await permissionService.hasPermission(
         documentId,
         socket.user.id,
-        permissionService.PERMISSIONS.EDIT,
+        permissionService.PERMISSIONS.EDIT
       );
 
       if (!canEdit) {
-        console.warn(
-          `[Socket Guard] User ${socket.user.id} attempted unauthorized edit on doc ${documentId}`,
+        logger.warn(
+          `[Socket Guard] User ${socket.user.id} attempted unauthorized edit on doc ${documentId}`
         );
         return socket.emit(SOCKET_EVENTS.SOCKET_ERROR, {
           message: "Permission denied: Edit permission required",
@@ -114,10 +115,10 @@ function registerDocumentRoomHandlers(io, socket) {
       collaborationService.scheduleDebouncedSave(
         documentId,
         content,
-        socket.user.id,
+        socket.user.id
       );
     } catch (error) {
-      console.error("[Socket Doc Update Error]:", error);
+      logger.error("[Socket Doc Update Error]:", error);
     }
   });
 
@@ -136,13 +137,13 @@ function registerDocumentRoomHandlers(io, socket) {
         timestamp: new Date().toISOString(),
       });
 
-      console.log(`[Socket Room] User ${socket.user.id} left ${roomName}`);
+      logger.info(`[Socket Room] User ${socket.user.id} left ${roomName}`);
     }
   });
 
   socket.on("disconnect", (reason) => {
-    console.log(
-      `[Socket Disconnect] User ${socket.user?.email || "unknown"} disconnected (${reason})`,
+    logger.info(
+      `[Socket Disconnect] User ${socket.user?.email || "unknown"} disconnected (${reason})`
     );
 
     activeRooms.forEach((roomName) => {

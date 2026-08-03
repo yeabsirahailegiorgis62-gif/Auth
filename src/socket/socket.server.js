@@ -3,6 +3,7 @@ const socketAuthMiddleware = require("./socket.auth");
 const registerDocumentRoomHandlers = require("./document.room");
 const registerPresenceHandlers = require("../presence/presence.room");
 const { registerCommentHandlers } = require("./comment.room");
+const logger = require("../config/logger");
 
 let io = null;
 
@@ -27,8 +28,8 @@ function initSocketServer(httpServer) {
   io.use(socketAuthMiddleware);
 
   io.on("connection", (socket) => {
-    console.log(
-      `[Socket Server] New connection established: Socket ID ${socket.id} for user ${socket.user.email}`,
+    logger.info(
+      `[Socket Server] New connection established: Socket ID ${socket.id} for user ${socket.user.email}`
     );
 
     registerDocumentRoomHandlers(io, socket);
@@ -36,7 +37,7 @@ function initSocketServer(httpServer) {
     registerCommentHandlers(io, socket);
   });
 
-  console.log("[Socket Server] Socket.IO collaboration engine initialized");
+  logger.info("[Socket Server] Socket.IO collaboration engine initialized");
   return io;
 }
 

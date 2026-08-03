@@ -1,5 +1,6 @@
 const PRESENCE_EVENTS = require("./presence.events");
 const presenceService = require("./presence.service");
+const logger = require("../config/logger");
 
 function registerPresenceHandlers(io, socket) {
   const typingTimers = new Map(); // documentId -> setTimeout handle
@@ -15,11 +16,11 @@ function registerPresenceHandlers(io, socket) {
       const session = await presenceService.registerPresenceSession(
         documentId,
         socket.id,
-        socket.user,
+        socket.user
       );
 
-      console.log(
-        `[Presence Room] User ${socket.user.email} registered presence in ${roomName} as ${session.role}`,
+      logger.info(
+        `[Presence Room] User ${socket.user.email} registered presence in ${roomName} as ${session.role}`
       );
 
       const collaborators = presenceService.getPresenceState(documentId);
@@ -34,7 +35,7 @@ function registerPresenceHandlers(io, socket) {
         callback({ success: true, session, collaborators });
       }
     } catch (error) {
-      console.error("[Presence Join Error]:", error);
+      logger.error("[Presence Join Error]:", error);
     }
   });
 
@@ -47,7 +48,7 @@ function registerPresenceHandlers(io, socket) {
       const updatedSession = presenceService.updateCursor(
         documentId,
         socket.id,
-        cursor,
+        cursor
       );
 
       if (updatedSession) {
@@ -62,7 +63,7 @@ function registerPresenceHandlers(io, socket) {
         });
       }
     } catch (error) {
-      console.error("[Presence Cursor Update Error]:", error);
+      logger.error("[Presence Cursor Update Error]:", error);
     }
   });
 
@@ -75,7 +76,7 @@ function registerPresenceHandlers(io, socket) {
       const updatedSession = presenceService.updateSelection(
         documentId,
         socket.id,
-        selection,
+        selection
       );
 
       if (updatedSession) {
@@ -90,7 +91,7 @@ function registerPresenceHandlers(io, socket) {
         });
       }
     } catch (error) {
-      console.error("[Presence Selection Update Error]:", error);
+      logger.error("[Presence Selection Update Error]:", error);
     }
   });
 
@@ -128,7 +129,7 @@ function registerPresenceHandlers(io, socket) {
 
       typingTimers.set(timerKey, autoStopTimer);
     } catch (error) {
-      console.error("[Presence Typing Start Error]:", error);
+      logger.error("[Presence Typing Start Error]:", error);
     }
   });
 
@@ -153,7 +154,7 @@ function registerPresenceHandlers(io, socket) {
         userId: socket.user.id,
       });
     } catch (error) {
-      console.error("[Presence Typing Stop Error]:", error);
+      logger.error("[Presence Typing Stop Error]:", error);
     }
   });
 
@@ -164,7 +165,7 @@ function registerPresenceHandlers(io, socket) {
     const roomName = `document:${documentId}`;
     const removedSession = presenceService.removePresenceSession(
       documentId,
-      socket.id,
+      socket.id
     );
 
     if (removedSession) {

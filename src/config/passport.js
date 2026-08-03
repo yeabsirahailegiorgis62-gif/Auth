@@ -6,6 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const prisma = require("./database");
+const logger = require("./logger");
 
 const getGoogleConfig = () => {
   const googleClientId = process.env.GOOGLE_CLIENT_ID;
@@ -26,8 +27,8 @@ const initGooglePassport = () => {
     getGoogleConfig();
 
   if (!googleClientId || !googleClientSecret) {
-    console.warn(
-      "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your environment.",
+    logger.warn(
+      "Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your environment."
     );
     return false;
   }
@@ -82,8 +83,8 @@ const initGooglePassport = () => {
         } catch (error) {
           done(error);
         }
-      },
-    ),
+      }
+    )
   );
 
   return true;
@@ -92,7 +93,7 @@ const initGooglePassport = () => {
 const isGoogleConfigured = () => {
   const { googleClientId, googleClientSecret } = getGoogleConfig();
   return Boolean(
-    googleClientId && googleClientSecret && passport._strategies?.google,
+    googleClientId && googleClientSecret && passport._strategies?.google
   );
 };
 

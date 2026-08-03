@@ -167,6 +167,36 @@ test("RBAC enforcement: VIEWER role cannot edit via REST or WebSocket", async ()
   });
 });
 
+test("RBAC enforcement: COMMENTER role can comment but cannot edit document", async () => {
+  // Update role to COMMENTER
+  const patchRoleRes = await request(`/api/documents/${docId}/collaborators/${user2Id}`, {
+    method: "PATCH",
+    headers: { authorization: `Bearer ${ownerToken}` },
+    body: JSON.stringify({ role: "COMMENTER" }),
+  });
+  assert.equal(patchRoleRes.status, 200);
+  assert.equal(patchRoleRes.body.share.role, "COMMENTER");
+
+  // COMMENTER can create comment thread (201)
+  const commentRes = await request(`/api/documents/${docId}/comments`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${viewerToken}` },
+    body: JSON.stringify({
+      selectedText: "Original Content",
+      content: "Commenter review note",
+    }),
+  });
+  assert.equal(commentRes.status, 201);
+
+  // COMMENTER edit attempt must be denied (403)
+  const patchContentRes = await request(`/api/documents/${docId}`, {
+    method: "PATCH",
+    headers: { authorization: `Bearer ${viewerToken}` },
+    body: JSON.stringify({ content: "Commenter unauthorized edit" }),
+  });
+  assert.equal(patchContentRes.status, 403);
+});
+
 test("RBAC role upgrade: owner promotes VIEWER to EDITOR enabling edit access", async () => {
   const patchRoleRes = await request(`/api/documents/${docId}/collaborators/${user2Id}`, {
     method: "PATCH",

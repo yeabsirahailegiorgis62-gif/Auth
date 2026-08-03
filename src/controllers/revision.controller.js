@@ -1,6 +1,7 @@
 const revisionService = require("../services/revision.service");
 const { getIO } = require("../socket/socket.server");
 const SOCKET_EVENTS = require("../socket/events");
+const logger = require("../config/logger");
 
 class RevisionController {
   async getTimeline(req, res, next) {
@@ -72,7 +73,7 @@ class RevisionController {
           document: result.document,
         });
       } catch (err) {
-        console.warn(`[Revision Controller] Socket broadcast failed: ${err.message}`);
+        logger.warn(`[Revision Controller] Socket broadcast failed: ${err.message}`);
       }
 
       res.status(200).json({

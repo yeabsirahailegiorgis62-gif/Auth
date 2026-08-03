@@ -1,5 +1,6 @@
 const SOCKET_EVENTS = require("./events");
 const commentService = require("../services/comment.service");
+const logger = require("../config/logger");
 
 /**
  * Registers real-time comment event handlers for a connected socket client
@@ -25,7 +26,7 @@ function registerCommentHandlers(io, socket) {
         callback({ success: true, thread });
       }
     } catch (error) {
-      console.error(`[Comment Room] Create thread error: ${error.message}`);
+      logger.error(`[Comment Room] Create thread error: ${error.message}`);
       if (typeof callback === "function") {
         callback({ success: false, error: error.message });
       }
@@ -57,7 +58,7 @@ function registerCommentHandlers(io, socket) {
         callback({ success: true, comment });
       }
     } catch (error) {
-      console.error(`[Comment Room] Add reply error: ${error.message}`);
+      logger.error(`[Comment Room] Add reply error: ${error.message}`);
       if (typeof callback === "function") {
         callback({ success: false, error: error.message });
       }
@@ -89,7 +90,7 @@ function registerCommentHandlers(io, socket) {
         callback({ success: true, comment });
       }
     } catch (error) {
-      console.error(`[Comment Room] Update comment error: ${error.message}`);
+      logger.error(`[Comment Room] Update comment error: ${error.message}`);
       if (typeof callback === "function") {
         callback({ success: false, error: error.message });
       }
@@ -120,7 +121,7 @@ function registerCommentHandlers(io, socket) {
         callback({ success: true, ...result });
       }
     } catch (error) {
-      console.error(`[Comment Room] Delete comment error: ${error.message}`);
+      logger.error(`[Comment Room] Delete comment error: ${error.message}`);
       if (typeof callback === "function") {
         callback({ success: false, error: error.message });
       }
@@ -151,7 +152,7 @@ function registerCommentHandlers(io, socket) {
         callback({ success: true, thread });
       }
     } catch (error) {
-      console.error(`[Comment Room] Resolve thread error: ${error.message}`);
+      logger.error(`[Comment Room] Resolve thread error: ${error.message}`);
       if (typeof callback === "function") {
         callback({ success: false, error: error.message });
       }
@@ -182,7 +183,7 @@ function registerCommentHandlers(io, socket) {
         callback({ success: true, thread });
       }
     } catch (error) {
-      console.error(`[Comment Room] Reopen thread error: ${error.message}`);
+      logger.error(`[Comment Room] Reopen thread error: ${error.message}`);
       if (typeof callback === "function") {
         callback({ success: false, error: error.message });
       }

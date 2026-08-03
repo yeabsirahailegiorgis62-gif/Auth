@@ -8,6 +8,9 @@ const rateLimit = require("express-rate-limit");
 const passport = require("passport");
 
 require("./config/passport");
+const setupSwagger = require("./config/swagger");
+const logger = require("./config/logger");
+const prisma = require("./config/database");
 
 const app = express();
 
@@ -23,7 +26,7 @@ app.use(
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-  }),
+  })
 );
 
 const authRoutes = require("./routes/auth.routes");
@@ -47,6 +50,9 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(passport.initialize());
 
+// Setup Swagger API Documentation at /api/docs
+setupSwagger(app);
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -67,20 +73,40 @@ app.use("/api/documents", documentRoutes);
 
 app.get("/", (req, res) => {
   res.json({
-    name: "auth-system",
+    name: "collaborative-document-platform",
     status: "running",
+    docs: "/api/docs",
   });
 });
 
-app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    service: "auth-system",
+app.get("/health", async (req, res) => {
+  let dbStatus = "connected";
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+  } catch (err) {
+    dbStatus = "disconnected";
+  }
+
+  const memory = process.memoryUsage();
+  const isHealthy = dbStatus === "connected";
+
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? "healthy" : "unhealthy",
+    uptime: Math.floor(process.uptime()),
+    database: dbStatus,
+    memory: {
+      heapUsed: `${Math.round(memory.heapUsed / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(memory.heapTotal / 1024 / 1024)}MB`,
+      rss: `${Math.round(memory.rss / 1024 / 1024)}MB`,
+    },
+    env: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString(),
   });
 });
 
 app.use((req, res) => {
   res.status(404).json({
+    success: false,
     message: "Route not found",
   });
 });
@@ -102,7 +128,7 @@ app.use((err, req, res, next) => {
     });
   }
 
-  console.error("Unhandled Error:", err);
+  logger.error("Unhandled Error:", err);
 
   const statusCode = err.status || err.statusCode || 500;
   const message =

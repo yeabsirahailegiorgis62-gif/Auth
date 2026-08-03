@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const logger = require("../config/logger");
 
 function socketAuthMiddleware(socket, next) {
   try {
@@ -23,10 +24,10 @@ function socketAuthMiddleware(socket, next) {
       email: decoded.email,
     };
 
-    console.log(`[Socket Auth] Authenticated user ${socket.user.email} (${socket.user.id})`);
+    logger.info(`[Socket Auth] Authenticated user ${socket.user.email} (${socket.user.id})`);
     next();
   } catch (error) {
-    console.error(`[Socket Auth] Rejected socket connection: ${error.message}`);
+    logger.error(`[Socket Auth] Rejected socket connection: ${error.message}`);
     const err = new Error("Authentication error: Invalid or expired token");
     err.data = { code: "UNAUTHORIZED" };
     return next(err);

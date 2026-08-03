@@ -1,4 +1,5 @@
 const notificationRepository = require("../repositories/notification.repository");
+const logger = require("../config/logger");
 
 class NotificationService {
   async createNotification(userId, documentId, type, message) {
@@ -10,7 +11,7 @@ class NotificationService {
         message,
       });
     } catch (err) {
-      console.warn(`[Notification Create Failed]: ${err.message}`);
+      logger.warn(`[Notification Create Failed]: ${err.message}`);
     }
   }
 

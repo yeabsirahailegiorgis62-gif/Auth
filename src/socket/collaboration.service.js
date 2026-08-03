@@ -1,4 +1,5 @@
 const documentRepository = require("../repositories/document.repository");
+const logger = require("../config/logger");
 
 class CollaborationService {
   constructor() {
@@ -37,9 +38,9 @@ class CollaborationService {
           content: serializedContent,
           lastOpenedAt: new Date(),
         });
-        console.log(`[Collab Service] Debounced save flushed to DB for doc ${documentId}`);
+        logger.info(`[Collab Service] Debounced save flushed to DB for doc ${documentId}`);
       } catch (error) {
-        console.error(`[Collab Service] Failed to save doc ${documentId}:`, error);
+        logger.error(`[Collab Service] Failed to save doc ${documentId}:`, error);
       } finally {
         this.pendingSaves.delete(documentId);
       }
@@ -63,7 +64,7 @@ class CollaborationService {
         content: serializedContent,
         lastOpenedAt: new Date(),
       });
-      console.log(`[Collab Service] Immediately flushed doc ${documentId}`);
+      logger.info(`[Collab Service] Immediately flushed doc ${documentId}`);
     }
   }
 }

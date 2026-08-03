@@ -1,4 +1,5 @@
 const activityRepository = require("../repositories/activity.repository");
+const logger = require("../config/logger");
 
 class ActivityService {
   async logActivity(userId, documentId, action, metadata = null) {
@@ -10,7 +11,7 @@ class ActivityService {
         metadata,
       });
     } catch (err) {
-      console.warn(`[Activity Log Failed]: ${err.message}`);
+      logger.warn(`[Activity Log Failed]: ${err.message}`);
     }
   }
 

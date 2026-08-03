@@ -1,5 +1,6 @@
 const presenceStore = require("./presence.store");
 const documentRepository = require("../repositories/document.repository");
+const logger = require("../config/logger");
 
 class PresenceService {
   async registerPresenceSession(documentId, socketId, user) {
@@ -10,7 +11,7 @@ class PresenceService {
         role = "Owner";
       }
     } catch (err) {
-      console.warn(`[Presence Service] Document lookup warning for doc ${documentId}:`, err.message);
+      logger.warn(`[Presence Service] Document lookup warning for doc ${documentId}: ${err.message}`);
     }
 
     return presenceStore.addSession(documentId, socketId, user, role);

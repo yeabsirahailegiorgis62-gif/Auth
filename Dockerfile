@@ -15,9 +15,12 @@ COPY . .
 # Generate Prisma Client
 RUN npx prisma generate
 
+# Make entrypoint executable
+RUN chmod +x /app/docker-entrypoint.sh
+
 EXPOSE 5000
 
 ENV NODE_ENV=production
 ENV PORT=5000
 
-CMD ["node", "src/server.js"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

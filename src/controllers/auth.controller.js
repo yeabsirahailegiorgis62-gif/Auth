@@ -81,12 +81,19 @@ const register = async (req, res) => {
       },
     });
 
+    const { accessToken, refreshToken } = await createSessionForUser(user, req);
+    setRefreshTokenCookie(res, refreshToken);
+
     res.status(201).json({
       message: "User created successfully",
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
+        avatarUrl: user.avatarUrl,
+        bio: user.bio,
       },
     });
   } catch (error) {

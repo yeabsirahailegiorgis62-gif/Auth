@@ -83,8 +83,7 @@ export default function Register() {
         email: values.email,
         password: values.password,
       });
-      resetForm();
-      setTimeout(() => navigate("/login"), 800);
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.response?.data?.message ?? "Unable to register.");
     } finally {

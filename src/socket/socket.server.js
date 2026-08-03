@@ -13,7 +13,11 @@ function initSocketServer(httpServer) {
   io = new Server(httpServer, {
     cors: {
       origin: (origin, callback) => {
-        if (!origin || origin === allowedOrigin) {
+        if (
+          !origin ||
+          origin === allowedOrigin ||
+          /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+        ) {
           return callback(null, true);
         }
         return callback(new Error("Not allowed by CORS"));

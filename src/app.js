@@ -19,8 +19,11 @@ const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests with no origin (like mobile apps or curl) or matching FRONTEND_URL
-      if (!origin || origin === allowedOrigin) {
+      if (
+        !origin ||
+        origin === allowedOrigin ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+      ) {
         return callback(null, true);
       }
       return callback(new Error("Not allowed by CORS"));

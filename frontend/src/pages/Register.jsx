@@ -85,7 +85,11 @@ export default function Register() {
       });
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message ?? "Unable to register.");
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Unable to connect to backend server. Please ensure backend is running.";
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }

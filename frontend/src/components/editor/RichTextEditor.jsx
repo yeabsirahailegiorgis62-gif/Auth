@@ -33,7 +33,7 @@ export default function RichTextEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-slate max-w-none focus:outline-none min-h-[500px] p-8 font-sans text-slate-800 text-base leading-relaxed select-text",
+          "ProseMirror prose prose-slate max-w-none focus:outline-none min-h-[550px] p-8 font-sans text-slate-800 text-base leading-relaxed select-text whitespace-pre-wrap",
       },
     },
     onUpdate: ({ editor }) => {
@@ -51,9 +51,10 @@ export default function RichTextEditor({
     },
   });
 
-  // Sync content when document changes from external props
+  // Sync content when document changes from external props (e.g. initial load or remote socket update),
+  // but DO NOT set content if the user is actively focused and typing in the editor.
   useEffect(() => {
-    if (editor && content) {
+    if (editor && content && !editor.isFocused) {
       const parsed = parseInitialContent(content);
       const currentJSON = JSON.stringify(editor.getJSON());
       const newJSON = typeof parsed === "object" ? JSON.stringify(parsed) : null;
@@ -65,7 +66,7 @@ export default function RichTextEditor({
   }, [content, editor]);
 
   return (
-    <div className="flex flex-col rounded-3xl border border-slate-200/80 bg-white shadow-xl shadow-slate-200/50 overflow-hidden">
+    <div className="flex flex-col rounded-3xl border border-slate-200/80 bg-white/90 backdrop-blur-md shadow-2xl shadow-slate-200/60 overflow-hidden transition-all duration-300">
       <EditorToolbar
         editor={editor}
         isCommentsOpen={isCommentsOpen}
@@ -74,7 +75,7 @@ export default function RichTextEditor({
         isHistoryOpen={isHistoryOpen}
         onToggleHistory={onToggleHistory}
       />
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-white/50 p-2">
         <EditorContent editor={editor} />
       </div>
     </div>

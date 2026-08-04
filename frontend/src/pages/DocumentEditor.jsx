@@ -265,9 +265,6 @@ export default function DocumentEditor() {
 
   const handleSelectionChange = ({ selectedText, fromPos, toPos }) => {
     setSelectionInfo({ selectedText, fromPos, toPos });
-    if (selectedText && selectedText.trim() && !isCommentsSidebarOpen) {
-      setIsCommentsSidebarOpen(true);
-    }
   };
 
   if (loading) {

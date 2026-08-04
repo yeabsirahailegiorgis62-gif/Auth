@@ -36,6 +36,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/document/:id"
+                element={
+                  <ProtectedRoute>
+                    <DocumentEditor />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </BrowserRouter>

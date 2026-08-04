@@ -14,8 +14,8 @@ class CollaborationService {
       return { allowed: false, reason: "Document not found" };
     }
 
-    const isOwner = document.ownerId === userId;
-    const isShared = document.shares?.some((share) => share.userId === userId);
+    const isOwner = String(document.ownerId) === String(userId);
+    const isShared = document.shares?.some((share) => String(share.userId) === String(userId));
 
     if (!isOwner && !isShared) {
       return { allowed: false, reason: "Permission denied" };

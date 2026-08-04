@@ -132,11 +132,21 @@ export default function DocumentEditor() {
     async function fetchDoc() {
       try {
         setLoading(true);
-        const data = await getDocumentById(id);
-        setDocument(data);
-        setTitle(data.title);
-        setContent(data.content);
-        setUserRole(data.userRole || "VIEWER");
+        const res = await getDocumentById(id);
+        const docData = res.document || res;
+
+        setDocument(docData);
+        setTitle(docData.title || "");
+        setContent(docData.content || null);
+
+        const isDocOwner =
+          user &&
+          docData.ownerId !== undefined &&
+          String(docData.ownerId) === String(user.id);
+
+        const derivedRole = docData.userRole || (isDocOwner ? "OWNER" : "VIEWER");
+
+        setUserRole(derivedRole);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load document");
       } finally {
@@ -148,7 +158,7 @@ export default function DocumentEditor() {
       fetchDoc();
       fetchRevisions();
     }
-  }, [id, fetchRevisions]);
+  }, [id, user, fetchRevisions]);
 
   // Real-time Socket Event Listeners for Permissions & Revision Restores
   useEffect(() => {
@@ -255,9 +265,6 @@ export default function DocumentEditor() {
 
   const handleSelectionChange = ({ selectedText, fromPos, toPos }) => {
     setSelectionInfo({ selectedText, fromPos, toPos });
-    if (selectedText && selectedText.trim() && !isCommentsSidebarOpen) {
-      setIsCommentsSidebarOpen(true);
-    }
   };
 
   if (loading) {

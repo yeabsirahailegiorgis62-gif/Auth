@@ -15,7 +15,7 @@ export default function RichTextEditor({
   onSelectionChange,
 }) {
   const parseInitialContent = (rawContent) => {
-    if (!rawContent) return "";
+    if (!rawContent && rawContent !== "") return "";
     if (typeof rawContent === "object") return rawContent;
     try {
       const parsed = JSON.parse(rawContent);
@@ -23,7 +23,7 @@ export default function RichTextEditor({
     } catch {
       // Fallback to HTML / plain string
     }
-    return rawContent;
+    return rawContent || "";
   };
 
   const editor = useEditor({
@@ -51,15 +51,25 @@ export default function RichTextEditor({
     },
   });
 
+  // Dynamic Editable Sync: Update TipTap editable state whenever isEditable prop changes
+  // (e.g. after permissions load or role changes from VIEWER to OWNER/EDITOR)
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(isEditable);
+    }
+  }, [isEditable, editor]);
+
   // Sync content when document changes from external props (e.g. initial load or remote socket update),
   // but DO NOT set content if the user is actively focused and typing in the editor.
   useEffect(() => {
-    if (editor && content && !editor.isFocused) {
+    if (editor && content !== undefined && content !== null && !editor.isFocused) {
       const parsed = parseInitialContent(content);
       const currentJSON = JSON.stringify(editor.getJSON());
       const newJSON = typeof parsed === "object" ? JSON.stringify(parsed) : null;
 
       if (newJSON && currentJSON !== newJSON) {
+        editor.commands.setContent(parsed, false);
+      } else if (typeof parsed === "string" && parsed !== "" && editor.getHTML() !== parsed) {
         editor.commands.setContent(parsed, false);
       }
     }
@@ -75,7 +85,14 @@ export default function RichTextEditor({
         isHistoryOpen={isHistoryOpen}
         onToggleHistory={onToggleHistory}
       />
-      <div className="flex-1 overflow-y-auto bg-white/50 p-2">
+      <div
+        className="flex-1 overflow-y-auto bg-white/50 p-2 cursor-text"
+        onClick={() => {
+          if (isEditable && editor && !editor.isFocused) {
+            editor.commands.focus();
+          }
+        }}
+      >
         <EditorContent editor={editor} />
       </div>
     </div>

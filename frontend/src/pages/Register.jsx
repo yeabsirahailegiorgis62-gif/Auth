@@ -17,9 +17,9 @@ const passwordRules = [
 ];
 
 export default function Register() {
-  const { register, error, message, setError, setMessage } = useAuth();
+  const { user, register, error, message, setError, setMessage } = useAuth();
   const navigate = useNavigate();
-  const { values, handleChange, resetForm } = useForm({
+  const { values, handleChange } = useForm({
     name: "",
     email: "",
     password: "",
@@ -29,6 +29,12 @@ export default function Register() {
   const [validationErrors, setValidationErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     setError(null);
@@ -96,7 +102,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-12 sm:px-6 lg:px-12 flex items-center justify-start">
+    <div className="min-h-screen bg-slate-50 px-4 py-12 sm:px-6 lg:px-12 flex items-center justify-center">
       <div className="w-full max-w-xl rounded-3xl bg-white p-8 shadow-xl shadow-slate-200">
         <div className="mb-6 flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1">
           <Link

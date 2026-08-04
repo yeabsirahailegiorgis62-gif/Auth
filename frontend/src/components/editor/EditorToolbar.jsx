@@ -69,7 +69,7 @@ export default function EditorToolbar({
   };
 
   return (
-    <div className="sticky top-[57px] z-20 flex flex-wrap items-center gap-1 border-b border-slate-200/80 bg-white/95 p-2 backdrop-blur-md">
+    <div className="relative z-10 w-full flex flex-wrap items-center gap-1 border-b border-slate-200/80 bg-white/95 p-2 backdrop-blur-md">
       {/* Undo / Redo Group */}
       <div className="flex items-center gap-0.5 border-r border-slate-200/80 pr-1.5">
         <button

@@ -7,12 +7,18 @@ import PrimaryButton from "../components/PrimaryButton";
 import useForm from "../hooks/useForm";
 
 export default function Login() {
-  const { login, error, setError } = useAuth();
+  const { user, login, error, setError } = useAuth();
   const navigate = useNavigate();
   const { values, handleChange } = useForm({ email: "", password: "" });
   const [submitting, setSubmitting] = useState(false);
   const [lockedUntil, setLockedUntil] = useState(null);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
 
   // Countdown timer effect
   useEffect(() => {
@@ -81,13 +87,13 @@ export default function Login() {
         <div className="mb-6 flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1">
           <Link
             to="/login"
-            className="rounded-full px-5 py-2 text-sm font-semibold transition hover:bg-white hover:text-slate-900"
+            className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:brightness-110"
           >
             Sign In
           </Link>
           <Link
             to="/register"
-            className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:brightness-110"
+            className="rounded-full px-5 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-slate-900"
           >
             Sign Up
           </Link>

@@ -17,9 +17,9 @@ const passwordRules = [
 ];
 
 export default function Register() {
-  const { register, error, message, setError, setMessage } = useAuth();
+  const { user, register, error, message, setError, setMessage } = useAuth();
   const navigate = useNavigate();
-  const { values, handleChange, resetForm } = useForm({
+  const { values, handleChange } = useForm({
     name: "",
     email: "",
     password: "",
@@ -29,6 +29,12 @@ export default function Register() {
   const [validationErrors, setValidationErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     setError(null);

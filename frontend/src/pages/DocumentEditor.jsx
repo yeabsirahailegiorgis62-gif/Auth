@@ -132,11 +132,18 @@ export default function DocumentEditor() {
     async function fetchDoc() {
       try {
         setLoading(true);
-        const data = await getDocumentById(id);
-        setDocument(data);
-        setTitle(data.title);
-        setContent(data.content);
-        setUserRole(data.userRole || "VIEWER");
+        const res = await getDocumentById(id);
+        const docData = res.document || res;
+
+        setDocument(docData);
+        setTitle(docData.title || "");
+        setContent(docData.content || null);
+
+        const derivedRole =
+          docData.userRole ||
+          (user && docData.ownerId === user.id ? "OWNER" : "VIEWER");
+
+        setUserRole(derivedRole);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load document");
       } finally {

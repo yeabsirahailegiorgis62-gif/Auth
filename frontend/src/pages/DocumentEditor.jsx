@@ -139,9 +139,12 @@ export default function DocumentEditor() {
         setTitle(docData.title || "");
         setContent(docData.content || null);
 
-        const derivedRole =
-          docData.userRole ||
-          (user && docData.ownerId === user.id ? "OWNER" : "VIEWER");
+        const isDocOwner =
+          user &&
+          docData.ownerId !== undefined &&
+          String(docData.ownerId) === String(user.id);
+
+        const derivedRole = docData.userRole || (isDocOwner ? "OWNER" : "VIEWER");
 
         setUserRole(derivedRole);
       } catch (err) {
@@ -155,7 +158,7 @@ export default function DocumentEditor() {
       fetchDoc();
       fetchRevisions();
     }
-  }, [id, fetchRevisions]);
+  }, [id, user, fetchRevisions]);
 
   // Real-time Socket Event Listeners for Permissions & Revision Restores
   useEffect(() => {

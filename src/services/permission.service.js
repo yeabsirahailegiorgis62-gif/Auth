@@ -52,11 +52,11 @@ class PermissionService {
       return null;
     }
 
-    if (document.ownerId === userId) {
+    if (String(document.ownerId) === String(userId)) {
       return ROLES.OWNER;
     }
 
-    const share = document.shares?.find((s) => s.userId === userId);
+    const share = document.shares?.find((s) => String(s.userId) === String(userId));
     if (share) {
       return share.role.toUpperCase();
     }

@@ -159,3 +159,95 @@ test("google auth entrypoint redirects to Google when configured", async () => {
     /accounts\.google\.com|google\.com/i,
   );
 });
+
+test("forgot password and reset password flow completes successfully", async () => {
+  const email = `reset-${Date.now()}@example.com`;
+
+  await request("/register", {
+    method: "POST",
+    body: JSON.stringify({
+      name: "Reset User",
+      email,
+      password: "OldPassword1!",
+    }),
+  });
+
+  const forgotRes = await request("/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+
+  assert.equal(forgotRes.status, 200);
+  const resetToken = forgotRes.body?.resetToken;
+  assert.ok(resetToken);
+
+  const resetRes = await request("/reset-password", {
+    method: "POST",
+    body: JSON.stringify({
+      token: resetToken,
+      newPassword: "NewPassword123!",
+    }),
+  });
+
+  assert.equal(resetRes.status, 200);
+
+  const loginRes = await request("/login", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      password: "NewPassword123!",
+    }),
+  });
+
+  assert.equal(loginRes.status, 200);
+  assert.ok(loginRes.body?.accessToken);
+});
+
+test("unverified user login is blocked until verified via token", async () => {
+  const email = `unverified-${Date.now()}@example.com`;
+
+  const registerRes = await request("/register", {
+    method: "POST",
+    body: JSON.stringify({
+      name: "Unverified User",
+      email,
+      password: "Secret123!",
+      forceVerification: true,
+    }),
+  });
+
+  assert.equal(registerRes.status, 201);
+  assert.equal(registerRes.body?.requiresVerification, true);
+  const verificationToken = registerRes.body?.verificationToken;
+  assert.ok(verificationToken);
+
+  const blockedLoginRes = await request("/login", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      password: "Secret123!",
+    }),
+  });
+
+  assert.equal(blockedLoginRes.status, 403);
+  assert.equal(blockedLoginRes.body?.requiresVerification, true);
+
+  const verifyRes = await request("/verify-email", {
+    method: "POST",
+    body: JSON.stringify({ token: verificationToken }),
+  });
+
+  assert.equal(verifyRes.status, 200);
+
+  const successLoginRes = await request("/login", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      password: "Secret123!",
+    }),
+  });
+
+  assert.equal(successLoginRes.status, 200);
+  assert.ok(successLoginRes.body?.accessToken);
+});
+

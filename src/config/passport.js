@@ -61,10 +61,13 @@ const initGooglePassport = () => {
             },
           });
 
-          if (user && !user.googleId) {
+          if (user) {
             user = await prisma.user.update({
               where: { email },
-              data: { googleId },
+              data: {
+                googleId: user.googleId || googleId,
+                isVerified: true,
+              },
             });
           }
 
@@ -75,6 +78,7 @@ const initGooglePassport = () => {
                 email,
                 googleId,
                 passwordHash: null,
+                isVerified: true,
               },
             });
           }

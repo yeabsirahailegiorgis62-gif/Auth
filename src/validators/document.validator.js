@@ -13,6 +13,8 @@ const createDocumentSchema = z.object({
     .max(255, "Title cannot exceed 255 characters")
     .optional(),
   content: contentSchema,
+  folderId: z.string().optional(),
+  workspaceId: z.string().optional(),
 });
 
 const updateDocumentSchema = z.object({
@@ -23,12 +25,15 @@ const updateDocumentSchema = z.object({
     .max(255, "Title cannot exceed 255 characters")
     .optional(),
   content: contentSchema,
+  folderId: z.string().optional(),
 });
 
 const queryDocumentSchema = z.object({
   search: z.string().trim().optional(),
   filter: z.enum(["all", "owned", "recent", "shared"]).optional().default("all"),
   limit: z.coerce.number().min(1).max(100).optional().default(50),
+  folderId: z.string().optional(),
+  tagId: z.string().optional(),
 });
 
 module.exports = {

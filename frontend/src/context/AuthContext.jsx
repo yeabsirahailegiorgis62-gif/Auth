@@ -61,7 +61,7 @@ export function AuthProvider({ children }) {
       setTokens(response.data);
       setUser(response.data.user);
     }
-    setMessage("Account created successfully.");
+    setMessage(response.data?.message || "Account created successfully.");
     return response;
   };
 
@@ -75,12 +75,49 @@ export function AuthProvider({ children }) {
       await fetchProfile();
       return response;
     } catch (error) {
-      if (error.response?.status === 429) {
-        // Handle account lockout
-        throw error;
-      }
       throw error;
     }
+  };
+
+  const verifyEmail = async (token) => {
+    setError(null);
+    setMessage(null);
+    const response = await api.post("/auth/verify-email", { token });
+    return response.data;
+  };
+
+  const resendVerification = async (email) => {
+    setError(null);
+    setMessage(null);
+    const response = await api.post("/auth/resend-verification", { email });
+    return response.data;
+  };
+
+  const forgotPassword = async (email) => {
+    setError(null);
+    setMessage(null);
+    const response = await api.post("/auth/forgot-password", { email });
+    return response.data;
+  };
+
+  const resetPassword = async (token, newPassword) => {
+    setError(null);
+    setMessage(null);
+    const response = await api.post("/auth/reset-password", {
+      token,
+      newPassword,
+    });
+    return response.data;
+  };
+
+  const getSessions = async () => {
+    const response = await api.get("/auth/sessions");
+    return response.data.sessions;
+  };
+
+  const revokeSession = async (sessionId) => {
+    const response = await api.delete(`/auth/sessions/${sessionId}`);
+    return response.data;
   };
 
   const oauthLogin = async (tokens) => {
@@ -123,6 +160,12 @@ export function AuthProvider({ children }) {
     message,
     register,
     login,
+    verifyEmail,
+    resendVerification,
+    forgotPassword,
+    resetPassword,
+    getSessions,
+    revokeSession,
     oauthLogin,
     logout,
     logoutAll,

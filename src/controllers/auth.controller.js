@@ -1,17 +1,24 @@
-const prisma = require("../config/database");
-const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-
+const authService = require("../services/auth.service");
+const sessionService = require("../services/session.service");
+const prisma = require("../config/database");
 const { generateAccessToken, generateRefreshToken } = require("../utils/jwt");
-const { registerSchema, loginSchema } = require("../validators/auth.validator");
+const {
+  registerSchema,
+  loginSchema,
+  verifyEmailSchema,
+  resendVerificationSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} = require("../validators/auth.validator");
 
 const getRefreshTokenHash = (refreshToken) =>
   crypto.createHash("sha256").update(refreshToken).digest("hex");
 
 const getClientMetadata = (req) => ({
-  device: req.get("user-agent") || "Unknown",
-  ipAddress: req.ip || req.socket?.remoteAddress || "Unknown",
+  device: req.get("user-agent") || "Unknown Device",
+  ipAddress: req.ip || req.socket?.remoteAddress || "Unknown IP",
 });
 
 const getRefreshTokenFromRequest = (req) =>
@@ -34,332 +41,354 @@ const clearRefreshTokenCookie = (res) => {
   });
 };
 
-const createSessionForUser = async (user, req) => {
-  const accessToken = generateAccessToken(user);
-  const refreshToken = generateRefreshToken(user);
-  const refreshTokenHash = getRefreshTokenHash(refreshToken);
-  const metadata = getClientMetadata(req);
-
-  await prisma.session.create({
-    data: {
-      userId: user.id,
-      refreshTokenHash,
-      device: metadata.device,
-      ipAddress: metadata.ipAddress,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    },
-  });
-
-  return { accessToken, refreshToken };
-};
-
-// Register User
+/**
+ * Controller: Register User
+ */
 const register = async (req, res) => {
   try {
     const validatedData = registerSchema.parse(req.body);
-    const { name, email, password } = validatedData;
+    const metadata = getClientMetadata(req);
 
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        email,
-      },
+    const result = await authService.registerUser({
+      name: validatedData.name,
+      email: validatedData.email,
+      password: validatedData.password,
+      forceVerification: req.body.forceVerification,
+      metadata,
     });
 
-    if (existingUser) {
-      return res.status(400).json({
-        message: "Email already exists",
-      });
+    if (result.tokens?.refreshToken) {
+      setRefreshTokenCookie(res, result.tokens.refreshToken);
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        passwordHash,
-      },
-    });
-
-    const { accessToken, refreshToken } = await createSessionForUser(user, req);
-    setRefreshTokenCookie(res, refreshToken);
-
     res.status(201).json({
-      message: "User created successfully",
-      accessToken,
-      refreshToken,
+      message: result.user.isVerified
+        ? "User created successfully"
+        : "Registration successful. Please verify your email address before logging in.",
+      accessToken: result.tokens?.accessToken || null,
+      refreshToken: result.tokens?.refreshToken || null,
+      verificationToken: result.verificationToken,
+      requiresVerification: result.requiresVerification,
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        avatarUrl: user.avatarUrl,
-        bio: user.bio,
+        id: result.user.id,
+        name: result.user.name,
+        email: result.user.email,
+        avatarUrl: result.user.avatarUrl,
+        bio: result.user.bio,
+        isVerified: result.user.isVerified,
       },
     });
   } catch (error) {
     if (error.name === "ZodError") {
       const message = error.issues?.[0]?.message || "Invalid input";
-      return res.status(400).json({
-        message,
-      });
+      return res.status(400).json({ message });
     }
-
-    res.status(500).json({
-      message: error.message,
-    });
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({ message: error.message });
   }
 };
 
-// Login User
+/**
+ * Controller: Login User
+ */
 const login = async (req, res) => {
   try {
     const validatedData = loginSchema.parse(req.body);
-    const { email, password } = validatedData;
+    const metadata = getClientMetadata(req);
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
+    const result = await authService.loginUser({
+      email: validatedData.email,
+      password: validatedData.password,
+      metadata,
     });
 
-    if (!user) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
-    }
-
-    const now = new Date();
-    if (user.lockedUntil && new Date(user.lockedUntil) > now) {
-      const remainingSeconds = Math.ceil(
-        (new Date(user.lockedUntil) - now) / 1000,
-      );
-      return res.status(429).json({
-        message:
-          "Too many failed login attempts. Please try again in 5 minutes.",
-        remainingSeconds,
-      });
-    }
-
-    if (user.lockedUntil && new Date(user.lockedUntil) <= now) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          lockedUntil: null,
-          failedLoginAttempts: 0,
-        },
-      });
-    }
-
-    if (!user.passwordHash) {
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
-    }
-
-    const passwordMatch = await bcrypt.compare(password, user.passwordHash);
-
-    if (!passwordMatch) {
-      const nextFailedAttempts = (user.failedLoginAttempts || 0) + 1;
-
-      if (nextFailedAttempts >= 3) {
-        const lockedUntil = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            failedLoginAttempts: 0,
-            lockedUntil,
-          },
-        });
-
-        const remainingSeconds = Math.ceil((lockedUntil - now) / 1000);
-        return res.status(429).json({
-          message:
-            "Too many failed login attempts. Please try again in 5 minutes.",
-          remainingSeconds,
-        });
-      }
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          failedLoginAttempts: nextFailedAttempts,
-        },
-      });
-
-      return res.status(401).json({
-        message: "Invalid email or password",
-      });
-    }
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-      },
-    });
-
-    const tokens = await createSessionForUser(user, req);
-
-    setRefreshTokenCookie(res, tokens.refreshToken);
+    setRefreshTokenCookie(res, result.refreshToken);
 
     res.json({
       message: "Login successful",
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
+        id: result.user.id,
+        name: result.user.name,
+        email: result.user.email,
+        avatarUrl: result.user.avatarUrl,
+        bio: result.user.bio,
+        isVerified: result.user.isVerified,
       },
-      ...tokens,
     });
   } catch (error) {
     if (error.name === "ZodError") {
       const message = error.issues?.[0]?.message || "Invalid input";
-      return res.status(400).json({
-        message,
-      });
+      return res.status(400).json({ message });
     }
-
-    res.status(500).json({
-      message: error.message,
-    });
+    const statusCode = error.statusCode || 500;
+    const response = { message: error.message };
+    if (error.remainingSeconds) response.remainingSeconds = error.remainingSeconds;
+    if (error.requiresVerification) response.requiresVerification = error.requiresVerification;
+    if (error.email) response.email = error.email;
+    res.status(statusCode).json(response);
   }
 };
 
-// Google OAuth callback
-const googleAuthCallback = async (req, res) => {
+/**
+ * Controller: Verify Email
+ */
+const verifyEmail = async (req, res) => {
   try {
-    if (!req.user) {
-      throw new Error("Google authentication failed");
-    }
+    const token = req.query?.token || req.body?.token;
+    const validatedData = verifyEmailSchema.parse({ token });
 
-    const tokens = await createSessionForUser(req.user, req);
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    const redirectUrl = new URL(`${frontendUrl}/auth/google/callback`);
+    const user = await authService.verifyEmailToken(validatedData.token);
 
-    redirectUrl.searchParams.set("accessToken", tokens.accessToken);
-    redirectUrl.searchParams.set("refreshToken", tokens.refreshToken);
-
-    return res.redirect(redirectUrl.toString());
+    res.json({
+      message: "Email verified successfully! You can now log in.",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
+      },
+    });
   } catch (error) {
-    const frontendLoginUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/login?error=google_auth_failed`;
-    return res.redirect(frontendLoginUrl);
+    if (error.name === "ZodError") {
+      const message = error.issues?.[0]?.message || "Verification token is required";
+      return res.status(400).json({ message });
+    }
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({ message: error.message });
   }
 };
 
-// Refresh Access Token
+/**
+ * Controller: Resend Verification Email
+ */
+const resendVerification = async (req, res) => {
+  try {
+    const validatedData = resendVerificationSchema.parse(req.body);
+    const result = await authService.resendVerification(validatedData.email);
+
+    res.json(result);
+  } catch (error) {
+    if (error.name === "ZodError") {
+      const message = error.issues?.[0]?.message || "Invalid input";
+      return res.status(400).json({ message });
+    }
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({ message: error.message });
+  }
+};
+
+/**
+ * Controller: Forgot Password
+ */
+const forgotPassword = async (req, res) => {
+  try {
+    const validatedData = forgotPasswordSchema.parse(req.body);
+    const result = await authService.requestPasswordReset(validatedData.email);
+
+    res.json(result);
+  } catch (error) {
+    if (error.name === "ZodError") {
+      const message = error.issues?.[0]?.message || "Invalid input";
+      return res.status(400).json({ message });
+    }
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({ message: error.message });
+  }
+};
+
+/**
+ * Controller: Reset Password
+ */
+const resetPassword = async (req, res) => {
+  try {
+    const validatedData = resetPasswordSchema.parse(req.body);
+    const result = await authService.resetUserPassword(
+      validatedData.token,
+      validatedData.newPassword,
+    );
+
+    clearRefreshTokenCookie(res);
+    res.json(result);
+  } catch (error) {
+    if (error.name === "ZodError") {
+      const message = error.issues?.[0]?.message || "Invalid input";
+      return res.status(400).json({ message });
+    }
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({ message: error.message });
+  }
+};
+
+/**
+ * Controller: Refresh Access Token
+ */
 const refreshAccessToken = async (req, res) => {
   try {
     const refreshToken = getRefreshTokenFromRequest(req);
 
     if (!refreshToken) {
-      return res.status(400).json({
-        message: "Refresh token required",
-      });
+      return res.status(401).json({ message: "Refresh token missing" });
     }
 
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET || "super-secret-refresh-key",
+      );
+    } catch (err) {
+      clearRefreshTokenCookie(res);
+      return res.status(401).json({ message: "Invalid or expired refresh token" });
+    }
 
     const refreshTokenHash = getRefreshTokenHash(refreshToken);
-
-    const session = await prisma.session.findFirst({
-      where: {
-        userId: decoded.id,
-        refreshTokenHash,
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-    });
+    const session = await sessionService.findSessionByTokenHash(refreshTokenHash);
 
     if (!session) {
-      return res.status(401).json({
-        message: "Invalid refresh token",
-      });
+      clearRefreshTokenCookie(res);
+      return res.status(401).json({ message: "Session expired or revoked" });
     }
 
-    const user = await prisma.user.findUnique({
-      where: {
-        id: decoded.id,
-      },
-    });
-
+    const user = session.user;
     if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
+      clearRefreshTokenCookie(res);
+      return res.status(401).json({ message: "User not found" });
     }
 
-    const accessToken = generateAccessToken(user);
+    await sessionService.revokeSessionByTokenHash(refreshTokenHash);
+
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+    const metadata = getClientMetadata(req);
+
+    await sessionService.createSession(user.id, newRefreshToken, metadata);
+    setRefreshTokenCookie(res, newRefreshToken);
 
     res.json({
-      accessToken,
+      message: "Token refreshed successfully",
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
     });
   } catch (error) {
-    res.status(401).json({
-      message: "Invalid or expired refresh token",
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Logout current session
+/**
+ * Controller: Get Active User Sessions
+ */
+const getSessions = async (req, res) => {
+  try {
+    const refreshToken = getRefreshTokenFromRequest(req);
+    const currentRefreshTokenHash = refreshToken ? getRefreshTokenHash(refreshToken) : null;
+
+    const sessions = await sessionService.getUserSessions(req.user.id, currentRefreshTokenHash);
+
+    res.json({
+      sessions,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Controller: Revoke Specific Session
+ */
+const revokeSession = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const success = await sessionService.revokeSessionById(req.user.id, id);
+
+    if (!success) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    res.json({ message: "Session revoked successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Controller: Logout Current Session
+ */
 const logout = async (req, res) => {
   try {
     const refreshToken = getRefreshTokenFromRequest(req);
 
     if (!refreshToken) {
-      return res.status(400).json({
-        message: "Refresh token required",
-      });
+      return res.status(400).json({ message: "Refresh token required for logout" });
     }
 
     const refreshTokenHash = getRefreshTokenHash(refreshToken);
-
-    await prisma.session.deleteMany({
-      where: {
-        refreshTokenHash,
-      },
-    });
+    await sessionService.revokeSessionByTokenHash(refreshTokenHash);
 
     clearRefreshTokenCookie(res);
-
-    res.json({
-      message: "Logged out successfully",
-    });
+    res.json({ message: "Logged out successfully" });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    clearRefreshTokenCookie(res);
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Logout all devices
+/**
+ * Controller: Logout All Sessions
+ */
 const logoutAll = async (req, res) => {
   try {
-    await prisma.session.deleteMany({
-      where: {
-        userId: req.user.id,
-      },
-    });
-
+    await sessionService.revokeAllUserSessions(req.user.id);
     clearRefreshTokenCookie(res);
-
-    res.json({
-      message: "Logged out from all devices",
-    });
+    res.json({ message: "All sessions logged out successfully" });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Controller: Google OAuth Callback
+ */
+const googleAuthCallback = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL || "http://localhost:5173"}/login?error=google_auth_failed`,
+      );
+    }
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    const metadata = getClientMetadata(req);
+
+    await sessionService.createSession(user.id, refreshToken, metadata);
+    setRefreshTokenCookie(res, refreshToken);
+
+    const redirectUrl = `${
+      process.env.FRONTEND_URL || "http://localhost:5173"
+    }/auth/google/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+
+    res.redirect(redirectUrl);
+  } catch (error) {
+    res.redirect(
+      `${process.env.FRONTEND_URL || "http://localhost:5173"}/login?error=google_auth_failed`,
+    );
   }
 };
 
 module.exports = {
   register,
   login,
-  googleAuthCallback,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword,
   refreshAccessToken,
+  getSessions,
+  revokeSession,
   logout,
   logoutAll,
+  googleAuthCallback,
 };

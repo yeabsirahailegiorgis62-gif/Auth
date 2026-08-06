@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /documents/
+Disallow: /api/
+
+Sitemap: https://nexusdocs.studio/sitemap.xml

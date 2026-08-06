@@ -1,6 +1,17 @@
-# CollabWrite Studio - Enterprise Real-Time Collaborative Document Platform
+# NexusDocs Studio - Enterprise Real-Time Collaborative Document Platform
 
-> A production-grade, distributed real-time collaborative document platform inspired by Google Docs and Notion. Built with Node.js, Express.js, Prisma ORM, PostgreSQL, Socket.IO v4, React 18, TipTap v2, and Tailwind CSS.
+> A production-grade, distributed real-time collaborative document platform inspired by Google Docs, Notion, and Linear. Built with Node.js, Express.js, Prisma ORM, PostgreSQL, Socket.IO v4, React 19, TipTap, Framer Motion, and Tailwind CSS.
+>
+> **Developed by Yeabsira Hailegiorgis**
+
+---
+
+## 🌟 Phase 2 Highlights
+- **Enterprise Commercial Landing Page (`/`)**: Production marketing website introducing features, workflow, interactive live workspace preview, counters, FAQ, and theme toggling. Redirects authenticated users automatically to `/dashboard`.
+- **Verified Authentication**: Email verification via secure SHA-256 tokens, unverified login protection, token expiration, and resend workflows.
+- **Google OAuth Auto-Verification**: One-click Google sign-in with automatic email verification and session generation.
+- **Device Session Management**: Inspect active sessions (device user-agent, IP, timestamp) and trigger remote session revocation or "Logout All Devices".
+- **Password Recovery**: Forgot password email workflow and secure token password reset.
 
 ---
 
@@ -8,15 +19,29 @@
 
 - **Swagger / OpenAPI Documentation**: `http://localhost:5000/api/docs`
 - **System Health & Telemetry**: `http://localhost:5000/health`
-- **[System Architecture Guide](file:///home/yeabsira-hailegiorgis/Documents/2nd%20Project/auth-system/docs/ARCHITECTURE.md)** (`docs/ARCHITECTURE.md`)
-- **[Database Schema & Indexing Guide](file:///home/yeabsira-hailegiorgis/Documents/2nd%20Project/auth-system/docs/DATABASE.md)** (`docs/DATABASE.md`)
-- **[5-Minute Evaluator Demo Script](file:///home/yeabsira-hailegiorgis/Documents/2nd%20Project/auth-system/docs/DEMO_GUIDE.md)** (`docs/DEMO_GUIDE.md`)
+- **[System Architecture Guide](file:///home/yeabsira-hailegiorgis/Documents/Auth/auth-system/docs/ARCHITECTURE.md)** (`docs/ARCHITECTURE.md`)
+- **[Database Schema & Indexing Guide](file:///home/yeabsira-hailegiorgis/Documents/Auth/auth-system/docs/DATABASE.md)** (`docs/DATABASE.md`)
+- **[5-Minute Evaluator Demo Script](file:///home/yeabsira-hailegiorgis/Documents/Auth/auth-system/docs/DEMO_GUIDE.md)** (`docs/DEMO_GUIDE.md`)
+
+---
+
+## 🛳 Production Deployment (Docker)
+
+The application is fully containerized and production-ready.
+
+1. Ensure Docker and Docker Compose are installed.
+2. Clone the repository and configure `.env` based on `.env.example`.
+3. Build and spin up the entire stack (PostgreSQL, Backend Node.js, Frontend Nginx):
+   ```bash
+   docker compose up -d --build
+   ```
+4. Access the application on `http://localhost`. (Nginx proxies API requests to the backend, so CORS is mitigated out-of-the-box).
 
 ---
 
 ## Architecture Overview
 
-CollabWrite Studio utilizes a Clean Layered Architecture with strict separation between Repositories, Services, Controllers, Socket handlers, RBAC Guard, and Frontend React components.
+NexusDocs Studio utilizes a Clean Layered Architecture with strict separation between Repositories, Services, Controllers, Socket handlers, RBAC Guard, and Frontend React components.
 
 ```
                   ┌──────────────────────────────────────────────┐
@@ -146,8 +171,8 @@ CollabWrite Studio utilizes a Clean Layered Architecture with strict separation 
    PORT=5000
    NODE_ENV=development
    DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/auth_system?schema=public"
-   JWT_SECRET="collabwrite_super_secret_jwt_key_2026"
-   JWT_REFRESH_SECRET="collabwrite_super_secret_refresh_jwt_key_2026"
+   JWT_SECRET="nexusdocs_super_secret_jwt_key_2026"
+   JWT_REFRESH_SECRET="nexusdocs_super_secret_refresh_jwt_key_2026"
    FRONTEND_URL="http://localhost:5173"
    ```
 

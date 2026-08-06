@@ -1,9 +1,33 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  EDITOR
+  COMMENTER
+  VIEWER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum NotificationType {
+  SYSTEM
+  MENTION
+  DOCUMENT_UPDATE
+  WORKSPACE_INVITE
+  COMMENT
 }
 
 model User {
@@ -23,18 +47,25 @@ model User {
   passwordResetTokenExpiresAt DateTime?
   createdAt                   DateTime  @default(now())
   updatedAt                   DateTime  @updatedAt
+  deletedAt                   DateTime?
 
-  sessions         Session[]
-  documents        Document[]      @relation("UserOwnedDocuments")
-  shares           DocumentShare[]
-  invitedShares    DocumentShare[] @relation("UserInvitedShares")
-  revisions        Revision[]
-  createdThreads   CommentThread[] @relation("UserCreatedThreads")
-  resolvedThreads  CommentThread[] @relation("UserResolvedThreads")
-  comments         Comment[]
-  favorites        Favorite[]
-  activities       ActivityLog[]
-  notifications    Notification[]
+  sessions        Session[]
+  documents       Document[]      @relation("UserOwnedDocuments")
+  shares          DocumentShare[]
+  invitedShares   DocumentShare[] @relation("UserInvitedShares")
+  revisions       Revision[]
+  createdThreads  CommentThread[] @relation("UserCreatedThreads")
+  resolvedThreads CommentThread[] @relation("UserResolvedThreads")
+  comments        Comment[]
+  favorites       Favorite[]
+  activities      ActivityLog[]
+  notifications   Notification[]
+
+  ownedWorkspaces  Workspace[]       @relation("WorkspaceOwner")
+  workspaceMembers WorkspaceMember[]
+  invitationsSent  Invitation[]      @relation("InvitationSender")
+
+  @@index([deletedAt])
 }
 
 model Session {
@@ -45,30 +76,140 @@ model Session {
   ipAddress        String?
   createdAt        DateTime @default(now())
   expiresAt        DateTime
+  lastActiveAt     DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([lastActiveAt])
+}
+
+model Workspace {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  logoUrl     String?
+  color       String?   @default("#3b82f6") // Default blue
+  ownerId     Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  owner       User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     WorkspaceMember[]
+  folders     Folder[]
+  documents   Document[]
+  tags        Tag[]
+  invitations Invitation[]
+
+  @@index([ownerId])
+  @@index([deletedAt])
+}
+
+model WorkspaceMember {
+  id          String   @id @default(uuid())
+  workspaceId String
+  userId      Int
+  role        Role     @default(VIEWER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId, role])
+  @@index([userId, workspaceId, role])
+}
+
+model Invitation {
+  id          String           @id @default(uuid())
+  workspaceId String
+  email       String
+  role        Role             @default(VIEWER)
+  status      InvitationStatus @default(PENDING)
+  tokenHash   String           @unique
+  invitedById Int
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy User      @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([email])
+}
+
+model Folder {
+  id          String    @id @default(uuid())
+  name        String
+  workspaceId String
+  parentId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parent    Folder?    @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Folder[]   @relation("FolderHierarchy")
+  documents Document[]
+
+  @@index([workspaceId, parentId, deletedAt])
+}
+
+model Tag {
+  id          String   @id @default(uuid())
+  name        String
+  color       String   @default("#e5e7eb")
+  workspaceId String
+  createdAt   DateTime @default(now())
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  documents DocumentTag[]
+
+  @@unique([workspaceId, name])
+}
+
+model DocumentTag {
+  id         String   @id @default(uuid())
+  documentId String
+  tagId      String
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, tagId])
+  @@index([documentId])
+  @@index([tagId])
 }
 
 model Document {
-  id           String   @id @default(uuid())
-  title        String   @default("Untitled Document")
-  content      String   @default("")
+  id           String    @id @default(uuid())
+  title        String    @default("Untitled Document")
+  content      String    @default("")
   ownerId      Int
-  isArchived   Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  lastOpenedAt DateTime @default(now())
+  workspaceId  String?
+  folderId     String?
+  isArchived   Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  lastOpenedAt DateTime  @default(now())
+  version      Int       @default(1)
 
   owner          User            @relation("UserOwnedDocuments", fields: [ownerId], references: [id], onDelete: Cascade)
+  workspace      Workspace?      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  folder         Folder?         @relation(fields: [folderId], references: [id], onDelete: SetNull)
   shares         DocumentShare[]
   revisions      Revision[]
   commentThreads CommentThread[]
   favorites      Favorite[]
   activities     ActivityLog[]
   notifications  Notification[]
+  tags           DocumentTag[]
 
+  @@index([workspaceId, folderId, deletedAt])
   @@index([ownerId])
   @@index([isArchived])
   @@index([lastOpenedAt])
@@ -79,10 +220,10 @@ model DocumentShare {
   id          String   @id @default(uuid())
   documentId  String
   userId      Int
-  role        String   @default("VIEWER") // VIEWER | COMMENTER | EDITOR | OWNER
+  role        Role     @default(VIEWER)
   invitedById Int?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
+  updatedAt   DateTime @updatedAt
 
   document  Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -120,14 +261,13 @@ model CommentThread {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  creator    User      @relation("UserCreatedThreads", fields: [createdBy], references: [id], onDelete: Cascade)
-  resolver   User?     @relation("UserResolvedThreads", fields: [resolvedById], references: [id], onDelete: SetNull)
-  comments   Comment[]
+  document Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  creator  User      @relation("UserCreatedThreads", fields: [createdBy], references: [id], onDelete: Cascade)
+  resolver User?     @relation("UserResolvedThreads", fields: [resolvedById], references: [id], onDelete: SetNull)
+  comments Comment[]
 
-  @@index([documentId])
+  @@index([documentId, resolved])
   @@index([createdBy])
-  @@index([resolved])
 }
 
 model Comment {
@@ -161,34 +301,40 @@ model Favorite {
 }
 
 model ActivityLog {
-  id         String   @id @default(uuid())
-  userId     Int
-  documentId String?
-  action     String // DOCUMENT_CREATED | DOCUMENT_EDITED | DOCUMENT_SHARED | COMMENT_CREATED | VERSION_RESTORED | DOCUMENT_TRASHED | DOCUMENT_RESTORED
-  metadata   String? // Serialized JSON details
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid())
+  userId      Int
+  workspaceId String?
+  documentId  String?
+  entityType  String?
+  action      String
+  metadata    String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   document Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
 
+  @@index([workspaceId, createdAt(sort: Desc)])
   @@index([userId])
   @@index([documentId])
-  @@index([createdAt])
 }
 
 model Notification {
-  id         String   @id @default(uuid())
-  userId     Int
-  documentId String?
-  type       String // DOCUMENT_SHARED | COMMENT_REPLIED | THREAD_RESOLVED | ROLE_UPDATED
-  message    String
-  read       Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  id          String           @id @default(uuid())
+  userId      Int
+  workspaceId String?
+  documentId  String?
+  type        NotificationType @default(SYSTEM)
+  message     String
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now())
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   document Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([workspaceId])
   @@index([read])
   @@index([createdAt])
 }

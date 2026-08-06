@@ -239,7 +239,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <h1 className="text-base font-bold text-slate-900 leading-tight">
-                  CollabWrite Studio
+                  NexusDocs Studio
                 </h1>
                 <p className="text-xs text-slate-500">Welcome, {user?.name}</p>
               </div>

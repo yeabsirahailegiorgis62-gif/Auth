@@ -54,7 +54,7 @@ export default function Navbar() {
             </div>
             <div>
               <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 dark:from-white dark:via-slate-100 dark:to-slate-300">
-                CollabWrite
+                NexusDocs
               </span>
               <span className="text-xs font-semibold uppercase tracking-wider ml-1 px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/50">
                 Studio

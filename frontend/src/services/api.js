@@ -15,6 +15,7 @@ const BACKEND_URL = API_BASE_URL.startsWith("/") ? "" : API_BASE_URL.replace(/\/
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -23,11 +24,31 @@ const api = axios.create({
 let isRefreshing = false;
 let pendingRequests = [];
 
-api.interceptors.request.use((config) => {
+let csrfToken = null;
+
+export const fetchCsrfToken = async () => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/csrf-token`, { withCredentials: true });
+    csrfToken = response.data.csrfToken;
+  } catch (error) {
+    console.error("Failed to fetch CSRF token", error);
+  }
+};
+
+api.interceptors.request.use(async (config) => {
   const accessToken = getAccessToken();
 
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  if (["post", "put", "patch", "delete"].includes(config.method?.toLowerCase())) {
+    if (!csrfToken) {
+      await fetchCsrfToken();
+    }
+    if (csrfToken) {
+      config.headers["x-csrf-token"] = csrfToken;
+    }
   }
 
   return config;

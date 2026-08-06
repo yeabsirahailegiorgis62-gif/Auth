@@ -1,4 +1,4 @@
-# CollabWrite Studio - Enterprise Real-Time Collaborative Document Platform
+# NexusDocs Studio - Enterprise Real-Time Collaborative Document Platform
 
 > A production-grade, distributed real-time collaborative document platform inspired by Google Docs, Notion, and Linear. Built with Node.js, Express.js, Prisma ORM, PostgreSQL, Socket.IO v4, React 19, TipTap, Framer Motion, and Tailwind CSS.
 >
@@ -25,9 +25,23 @@
 
 ---
 
+## 🛳 Production Deployment (Docker)
+
+The application is fully containerized and production-ready.
+
+1. Ensure Docker and Docker Compose are installed.
+2. Clone the repository and configure `.env` based on `.env.example`.
+3. Build and spin up the entire stack (PostgreSQL, Backend Node.js, Frontend Nginx):
+   ```bash
+   docker compose up -d --build
+   ```
+4. Access the application on `http://localhost`. (Nginx proxies API requests to the backend, so CORS is mitigated out-of-the-box).
+
+---
+
 ## Architecture Overview
 
-CollabWrite Studio utilizes a Clean Layered Architecture with strict separation between Repositories, Services, Controllers, Socket handlers, RBAC Guard, and Frontend React components.
+NexusDocs Studio utilizes a Clean Layered Architecture with strict separation between Repositories, Services, Controllers, Socket handlers, RBAC Guard, and Frontend React components.
 
 ```
                   ┌──────────────────────────────────────────────┐
@@ -157,8 +171,8 @@ CollabWrite Studio utilizes a Clean Layered Architecture with strict separation 
    PORT=5000
    NODE_ENV=development
    DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/auth_system?schema=public"
-   JWT_SECRET="collabwrite_super_secret_jwt_key_2026"
-   JWT_REFRESH_SECRET="collabwrite_super_secret_refresh_jwt_key_2026"
+   JWT_SECRET="nexusdocs_super_secret_jwt_key_2026"
+   JWT_REFRESH_SECRET="nexusdocs_super_secret_refresh_jwt_key_2026"
    FRONTEND_URL="http://localhost:5173"
    ```
 

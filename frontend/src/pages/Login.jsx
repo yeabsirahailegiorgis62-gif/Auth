@@ -117,7 +117,7 @@ export default function Login() {
         <div className="w-full max-w-md p-8 rounded-3xl bg-slate-900/90 border border-slate-800 backdrop-blur-xl shadow-2xl space-y-6">
           <div className="text-center space-y-2">
             <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">
-              CollabWrite Studio
+              NexusDocs Studio
             </span>
             <h1 className="text-2xl font-extrabold text-white">
               Welcome Back

@@ -60,7 +60,7 @@ export default function Landing() {
       <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-slate-400">Loading CollabWrite Studio...</p>
+          <p className="text-sm font-medium text-slate-400">Loading NexusDocs Studio...</p>
         </div>
       </div>
     );
@@ -192,8 +192,8 @@ export default function Landing() {
 
   const faqs = [
     {
-      q: "How does real-time collaboration work in CollabWrite Studio?",
-      a: "CollabWrite Studio uses a high-performance Socket.IO WebSocket server paired with Optimistic UI updates. When you edit a document, your changes are broadcast to all connected room members in under 10ms while automatically syncing to PostgreSQL.",
+      q: "How does real-time collaboration work in NexusDocs Studio?",
+      a: "NexusDocs Studio uses a high-performance Socket.IO WebSocket server paired with Optimistic UI updates. When you edit a document, your changes are broadcast to all connected room members in under 10ms while automatically syncing to PostgreSQL.",
     },
     {
       q: "Is email verification required for new signups?",
@@ -205,7 +205,7 @@ export default function Landing() {
     },
     {
       q: "How does version history work?",
-      a: "CollabWrite Studio automatically logs document revision checkpoints whenever significant updates or manual snapshots occur. You can view the complete version history log and restore any prior snapshot with a single click.",
+      a: "NexusDocs Studio automatically logs document revision checkpoints whenever significant updates or manual snapshots occur. You can view the complete version history log and restore any prior snapshot with a single click.",
     },
     {
       q: "What technologies power the backend and database?",
@@ -227,7 +227,7 @@ export default function Landing() {
           {/* Top Pill */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-inner text-xs font-semibold text-indigo-300">
             <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-spin" />
-            <span>CollabWrite Studio v2.0 Enterprise Release</span>
+            <span>NexusDocs Studio v2.0 Enterprise Release</span>
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
             <span className="text-slate-400 font-normal">Real-Time Event Engine</span>
           </div>
@@ -283,7 +283,7 @@ export default function Landing() {
                     <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
                     <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
                     <span className="text-xs font-mono text-slate-400 ml-2">
-                      CollabWrite Workspace / Enterprise Architecture Blueprint.md
+                      NexusDocs Workspace / Enterprise Architecture Blueprint.md
                     </span>
                   </div>
 
@@ -313,7 +313,7 @@ export default function Landing() {
                     1. Low-Latency Real-Time Event Architecture
                   </h2>
                   <p className="text-slate-400">
-                    CollabWrite Studio utilizes Socket.IO WebSocket namespaces to establish persistent bidirectional communication channels between client workspaces and backend services.
+                    NexusDocs Studio utilizes Socket.IO WebSocket namespaces to establish persistent bidirectional communication channels between client workspaces and backend services.
                   </p>
                   
                   {/* Simulated Live Cursor */}
@@ -401,7 +401,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              Why Choose CollabWrite Studio?
+              Why Choose NexusDocs Studio?
             </h2>
             <p className="text-slate-400 text-base sm:text-lg">
               Designed from the ground up to solve latency, collaboration friction, and security risks.
@@ -430,7 +430,7 @@ export default function Landing() {
               Step-By-Step Workflow
             </div>
             <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              How CollabWrite Works
+              How NexusDocs Works
             </h2>
             <p className="text-slate-400 text-base sm:text-lg">
               From account signup to instant multi-user editing in 8 streamlined steps.
@@ -540,7 +540,7 @@ export default function Landing() {
               Product Interface Previews
             </h2>
             <p className="text-slate-400 text-base sm:text-lg">
-              Take a closer look at CollabWrite Studio's clean, modern workspace.
+              Take a closer look at NexusDocs Studio's clean, modern workspace.
             </p>
           </div>
 
@@ -588,14 +588,14 @@ export default function Landing() {
               Loved by Engineering Leaders
             </h2>
             <p className="text-slate-400 text-base sm:text-lg">
-              Here is what developers and product managers say about CollabWrite Studio.
+              Here is what developers and product managers say about NexusDocs Studio.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                quote: "CollabWrite Studio delivers the instant real-time sync performance of Google Docs with the modern aesthetic of Notion. Incredible architecture!",
+                quote: "NexusDocs Studio delivers the instant real-time sync performance of Google Docs with the modern aesthetic of Notion. Incredible architecture!",
                 author: "Marcus Vance",
                 role: "Staff Software Engineer, SaaS Corp",
               },
@@ -678,13 +678,13 @@ export default function Landing() {
       <section id="about" className="py-20 bg-gradient-to-b from-slate-900 to-slate-950 border-t border-slate-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-semibold">
-            About CollabWrite Studio
+            About NexusDocs Studio
           </div>
           <h2 className="text-3xl font-extrabold text-white">
             Built for Modern Enterprise Productivity
           </h2>
           <p className="text-slate-300 text-base max-w-2xl mx-auto leading-relaxed">
-            CollabWrite Studio is an open-architecture, commercial-grade collaborative text workspace designed and built by <span className="font-semibold text-white">Yeabsira Hailegiorgis</span>.
+            NexusDocs Studio is an open-architecture, commercial-grade collaborative text workspace designed and built by <span className="font-semibold text-white">Yeabsira Hailegiorgis</span>.
           </p>
           <div className="pt-4 flex justify-center">
             <Link

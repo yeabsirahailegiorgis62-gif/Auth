@@ -78,7 +78,7 @@ export default function VerifyEmail() {
           {status === "verifying" && (
             <div className="py-6 space-y-3">
               <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin mx-auto" />
-              <p className="text-sm text-slate-300">Verifying your account token with CollabWrite Studio...</p>
+              <p className="text-sm text-slate-300">Verifying your account token with NexusDocs Studio...</p>
             </div>
           )}
 

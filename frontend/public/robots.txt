@@ -4,4 +4,4 @@ Disallow: /dashboard
 Disallow: /documents/
 Disallow: /api/
 
-Sitemap: https://collabwrite.studio/sitemap.xml
+Sitemap: https://nexusdocs.studio/sitemap.xml

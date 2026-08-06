@@ -11,6 +11,9 @@ require("./config/passport");
 const setupSwagger = require("./config/swagger");
 const logger = require("./config/logger");
 const prisma = require("./config/database");
+const xss = require("xss-clean");
+const morgan = require("morgan");
+const { getCsrfToken, verifyCsrfToken } = require("./middleware/csrf.middleware");
 
 const app = express();
 
@@ -48,11 +51,40 @@ const tagRoutes = require("./routes/tag.routes");
 
 app.disable("x-powered-by");
 
-app.use(helmet());
+// Logging
+app.use(
+  morgan("combined", {
+    stream: { write: (message) => logger.info(message.trim()) },
+  })
+);
+
+// Security Headers
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "https://*"],
+        connectSrc: ["'self'", "ws:", "wss:"],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+
+// XSS Protection
+app.use(xss());
+
+// CSRF Protection Endpoints & Middleware
+app.get("/api/csrf-token", getCsrfToken);
+app.use(verifyCsrfToken);
 
 app.use(passport.initialize());
 

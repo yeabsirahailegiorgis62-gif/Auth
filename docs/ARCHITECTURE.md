@@ -112,6 +112,6 @@ Single source of truth for all access control decisions across both REST and Web
 ## 4. Deployment Topology
 
 The entire application is containerized via Docker and Docker Compose:
-- **`collabwrite-postgres`**: PostgreSQL 15 database container with persistent data volumes and health checks.
-- **`collabwrite-backend`**: Node 20 Alpine Express API server exposing port 5000.
-- **`collabwrite-frontend`**: Nginx static web server serving production Vite bundle on port 80 with single-page app route fallback.
+- **`nexusdocs-postgres`**: PostgreSQL 15 database container with persistent data volumes and health checks.
+- **`nexusdocs-backend`**: Node 20 Alpine Express API server exposing port 5000.
+- **`nexusdocs-frontend`**: Nginx static web server serving production Vite bundle on port 80 with single-page app route fallback.

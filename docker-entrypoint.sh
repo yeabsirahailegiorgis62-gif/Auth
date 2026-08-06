@@ -8,5 +8,5 @@ until npx prisma db push; do
 done
 
 echo "Database schema synchronized successfully."
-echo "Starting CollabWrite Studio Backend Server..."
+echo "Starting NexusDocs Studio Backend Server..."
 exec node src/server.js

@@ -2,16 +2,19 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { SocketProvider } from "./context/SocketContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import React, { Suspense } from "react";
 import Landing from "./pages/Landing";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import DocumentEditor from "./pages/DocumentEditor";
 import GoogleCallback from "./pages/GoogleCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+// Lazy loaded components
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
+const DocumentEditor = React.lazy(() => import("./pages/DocumentEditor"));
 
 function App() {
   return (
@@ -31,7 +34,9 @@ function App() {
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
+                    <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading Dashboard...</div>}>
+                      <Dashboard />
+                    </Suspense>
                   </ProtectedRoute>
                 }
               />
@@ -39,7 +44,9 @@ function App() {
                 path="/documents/:id"
                 element={
                   <ProtectedRoute>
-                    <DocumentEditor />
+                    <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading Editor...</div>}>
+                      <DocumentEditor />
+                    </Suspense>
                   </ProtectedRoute>
                 }
               />
@@ -47,7 +54,9 @@ function App() {
                 path="/document/:id"
                 element={
                   <ProtectedRoute>
-                    <DocumentEditor />
+                    <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading Editor...</div>}>
+                      <DocumentEditor />
+                    </Suspense>
                   </ProtectedRoute>
                 }
               />

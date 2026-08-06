@@ -23,6 +23,8 @@
     "express-rate-limit": "^8.6.1",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.11.0",
+    "node-cache": "^5.1.2",
     "nodemailer": "^9.0.4",
     "openai": "^7.4.0",
     "passport": "^0.7.0",
@@ -35,6 +37,7 @@
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.19.0",
     "ws": "^8.21.2",
+    "xss-clean": "^0.1.4",
     "y-websocket": "^3.0.0",
     "yjs": "^13.6.32",
     "zod": "^4.4.3"

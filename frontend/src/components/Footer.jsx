@@ -15,7 +15,7 @@ export default function Footer() {
                 </div>
               </div>
               <span className="text-xl font-bold text-white tracking-tight">
-                CollabWrite <span className="text-indigo-400 font-medium">Studio</span>
+                NexusDocs <span className="text-indigo-400 font-medium">Studio</span>
               </span>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
@@ -145,7 +145,7 @@ export default function Footer() {
 
         {/* Footer Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <p>© {new Date().getFullYear()} CollabWrite Studio. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} NexusDocs Studio. All rights reserved.</p>
           <div className="flex items-center gap-1 text-slate-400">
             <span>Designed & Engineered by</span>
             <span className="font-semibold text-slate-200">Yeabsira Hailegiorgis</span>

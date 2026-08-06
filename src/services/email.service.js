@@ -24,7 +24,7 @@ const getVerificationEmailTemplate = (name, verifyUrl) => {
     <body>
       <div class="container">
         <div class="header">
-          <div class="logo">CollabWrite Studio</div>
+          <div class="logo">NexusDocs Studio</div>
         </div>
         <div class="content">
           <h2>Welcome, ${name}! 👋</h2>
@@ -37,14 +37,14 @@ const getVerificationEmailTemplate = (name, verifyUrl) => {
           <p>This verification link will expire in 24 hours.</p>
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} CollabWrite Studio. All rights reserved.</p>
+          <p>© ${new Date().getFullYear()} NexusDocs Studio. All rights reserved.</p>
         </div>
       </div>
     </body>
     </html>
   `;
 
-  const text = `Hi ${name},\n\nPlease verify your email address for CollabWrite Studio by clicking the link below:\n\n${verifyUrl}\n\nThis link will expire in 24 hours.\n\nThank you!`;
+  const text = `Hi ${name},\n\nPlease verify your email address for NexusDocs Studio by clicking the link below:\n\n${verifyUrl}\n\nThis link will expire in 24 hours.\n\nThank you!`;
 
   return { html, text };
 };
@@ -69,12 +69,12 @@ const getPasswordResetEmailTemplate = (name, resetUrl) => {
     <body>
       <div class="container">
         <div class="header">
-          <div class="logo">CollabWrite Studio</div>
+          <div class="logo">NexusDocs Studio</div>
         </div>
         <div class="content">
           <h2>Password Reset Request</h2>
           <p>Hello ${name},</p>
-          <p>We received a request to reset your password for your CollabWrite Studio account. Click the button below to choose a new password:</p>
+          <p>We received a request to reset your password for your NexusDocs Studio account. Click the button below to choose a new password:</p>
           <div style="text-align: center;">
             <a href="${resetUrl}" class="btn">Reset Password</a>
           </div>
@@ -83,14 +83,14 @@ const getPasswordResetEmailTemplate = (name, resetUrl) => {
           <p><strong>Note:</strong> This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email.</p>
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} CollabWrite Studio. All rights reserved.</p>
+          <p>© ${new Date().getFullYear()} NexusDocs Studio. All rights reserved.</p>
         </div>
       </div>
     </body>
     </html>
   `;
 
-  const text = `Hello ${name},\n\nWe received a request to reset your password for CollabWrite Studio. Use the link below to set a new password:\n\n${resetUrl}\n\nThis link will expire in 1 hour. If you did not request this, please ignore this email.\n\nThank you!`;
+  const text = `Hello ${name},\n\nWe received a request to reset your password for NexusDocs Studio. Use the link below to set a new password:\n\n${resetUrl}\n\nThis link will expire in 1 hour. If you did not request this, please ignore this email.\n\nThank you!`;
 
   return { html, text };
 };
@@ -103,7 +103,7 @@ const getPasswordResetEmailTemplate = (name, resetUrl) => {
 class EmailService {
   constructor() {
     this.frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    this.fromEmail = process.env.SMTP_FROM || "CollabWrite Studio <noreply@collabwrite.studio>";
+    this.fromEmail = process.env.SMTP_FROM || "NexusDocs Studio <noreply@nexusdocs.studio>";
     this.transporter = this.initTransporter();
   }
 
@@ -158,7 +158,7 @@ class EmailService {
 
     await this.sendEmail({
       to: email,
-      subject: "Verify your email address - CollabWrite Studio",
+      subject: "Verify your email address - NexusDocs Studio",
       html,
       text,
     });
@@ -179,7 +179,7 @@ class EmailService {
 
     await this.sendEmail({
       to: email,
-      subject: "Reset your password - CollabWrite Studio",
+      subject: "Reset your password - NexusDocs Studio",
       html,
       text,
     });

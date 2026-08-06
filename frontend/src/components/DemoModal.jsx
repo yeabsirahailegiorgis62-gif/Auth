@@ -17,7 +17,7 @@ export default function DemoModal({ isOpen, onClose }) {
             </div>
             <div>
               <h3 className="text-base font-bold text-white">
-                CollabWrite Studio Interactive Tour
+                NexusDocs Studio Interactive Tour
               </h3>
               <p className="text-xs text-slate-400">
                 Explore real-time multi-user editing, comments, and version control
@@ -79,7 +79,7 @@ export default function DemoModal({ isOpen, onClose }) {
                 <div className="font-mono text-xs text-slate-300 space-y-2 p-3 bg-slate-900/60 rounded-xl">
                   <p># Executive Summary</p>
                   <p className="text-indigo-300">
-                    CollabWrite Studio utilizes a decoupled WebSocket event architecture with Optimistic UI updates.
+                    NexusDocs Studio utilizes a decoupled WebSocket event architecture with Optimistic UI updates.
                   </p>
                   <p className="text-slate-400">
                     Collaborator <span className="text-cyan-400 font-bold">@Yeabsira</span> is currently editing section 3.2...
@@ -187,7 +187,7 @@ export default function DemoModal({ isOpen, onClose }) {
         {/* Modal Footer */}
         <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
           <p className="text-xs text-slate-400">
-            Ready to experience CollabWrite Studio live?
+            Ready to experience NexusDocs Studio live?
           </p>
           <button
             onClick={onClose}

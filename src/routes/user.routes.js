@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const authenticate = require("../middleware/auth.middleware");
+const { cacheMiddleware } = require("../middleware/cache.middleware");
 const prisma = require("../config/database");
 
-router.get("/profile", authenticate, (req, res) => {
+router.get("/profile", authenticate, cacheMiddleware(300), (req, res) => {
   res.json({
     message: "Protected profile route",
     user: req.user,
@@ -31,6 +32,9 @@ router.patch("/profile", authenticate, async (req, res, next) => {
         createdAt: true,
       },
     });
+
+    const { clearCachePrefix } = require("../middleware/cache.middleware");
+    clearCachePrefix(`__express__${req.user.id}`);
 
     res.json({
       success: true,

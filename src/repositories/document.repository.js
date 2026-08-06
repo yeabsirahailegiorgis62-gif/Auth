@@ -7,6 +7,8 @@ class DocumentRepository {
         title: data.title || "Untitled Document",
         content: data.content || "",
         ownerId: data.ownerId,
+        folderId: data.folderId,
+        workspaceId: data.workspaceId,
       },
       include: {
         owner: {
@@ -46,11 +48,21 @@ class DocumentRepository {
     });
   }
 
-  async findByOwner(ownerId, { search, filter, limit = 50 }) {
+  async findByOwner(ownerId, { search, filter, limit = 50, folderId, tagId }) {
     const where = {
       ownerId,
       isArchived: false,
     };
+
+    if (folderId !== undefined) {
+      where.folderId = folderId;
+    }
+
+    if (tagId !== undefined) {
+      where.tags = {
+        some: { tagId },
+      };
+    }
 
     if (search) {
       where.title = {
@@ -74,6 +86,11 @@ class DocumentRepository {
             id: true,
             name: true,
             email: true,
+          },
+        },
+        tags: {
+          include: {
+            tag: true,
           },
         },
       },

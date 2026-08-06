@@ -15,6 +15,12 @@ enum Role {
   VIEWER
 }
 
+enum AiProvider {
+  OPENAI
+  ANTHROPIC
+  LOCAL
+}
+
 enum InvitationStatus {
   PENDING
   ACCEPTED
@@ -60,6 +66,8 @@ model User {
   favorites       Favorite[]
   activities      ActivityLog[]
   notifications   Notification[]
+  aiUsageLogs     AiUsageLog[]
+  aiHistory       AiHistory[]
 
   ownedWorkspaces  Workspace[]       @relation("WorkspaceOwner")
   workspaceMembers WorkspaceMember[]
@@ -101,6 +109,8 @@ model Workspace {
   documents   Document[]
   tags        Tag[]
   invitations Invitation[]
+  aiConfig    WorkspaceAiConfig?
+  aiUsageLogs AiUsageLog[]
 
   @@index([ownerId])
   @@index([deletedAt])
@@ -188,6 +198,7 @@ model Document {
   id           String    @id @default(uuid())
   title        String    @default("Untitled Document")
   content      String    @default("")
+  yjsState     Bytes?
   ownerId      Int
   workspaceId  String?
   folderId     String?
@@ -208,6 +219,7 @@ model Document {
   activities     ActivityLog[]
   notifications  Notification[]
   tags           DocumentTag[]
+  aiHistory      AiHistory[]
 
   @@index([workspaceId, folderId, deletedAt])
   @@index([ownerId])
@@ -337,4 +349,46 @@ model Notification {
   @@index([workspaceId])
   @@index([read])
   @@index([createdAt])
+}
+
+model WorkspaceAiConfig {
+  id          String     @id @default(uuid())
+  workspaceId String     @unique
+  provider    AiProvider @default(OPENAI)
+  apiKey      String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model AiUsageLog {
+  id          String   @id @default(uuid())
+  workspaceId String
+  userId      Int
+  tokensUsed  Int      @default(0)
+  action      String   @default("unknown")
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([userId])
+}
+
+model AiHistory {
+  id          String   @id @default(uuid())
+  userId      Int
+  documentId  String
+  prompt      String
+  response    String
+  action      String
+  createdAt   DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([documentId])
 }

@@ -13,6 +13,8 @@ class SearchRepository {
       OR: [
         { title: { contains: searchTerm, mode: "insensitive" } },
         { content: { contains: searchTerm, mode: "insensitive" } },
+        { comments: { some: { content: { contains: searchTerm, mode: "insensitive" } } } },
+        { tags: { some: { tag: { name: { contains: searchTerm, mode: "insensitive" } } } } }
       ],
     };
 
@@ -56,6 +58,8 @@ class SearchRepository {
                 OR: [
                   { title: { contains: searchTerm, mode: "insensitive" } },
                   { content: { contains: searchTerm, mode: "insensitive" } },
+                  { comments: { some: { content: { contains: searchTerm, mode: "insensitive" } } } },
+                  { tags: { some: { tag: { name: { contains: searchTerm, mode: "insensitive" } } } } }
                 ],
               },
             ],
@@ -67,6 +71,8 @@ class SearchRepository {
                 OR: [
                   { title: { contains: searchTerm, mode: "insensitive" } },
                   { content: { contains: searchTerm, mode: "insensitive" } },
+                  { comments: { some: { content: { contains: searchTerm, mode: "insensitive" } } } },
+                  { tags: { some: { tag: { name: { contains: searchTerm, mode: "insensitive" } } } } }
                 ],
               },
             ],

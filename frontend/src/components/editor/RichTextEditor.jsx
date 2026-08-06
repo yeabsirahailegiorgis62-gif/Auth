@@ -1,9 +1,16 @@
 import { useEditor, EditorContent } from "@tiptap/react";
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
+import Collaboration from "@tiptap/extension-collaboration";
+import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
 import { defaultExtensions } from "./extensions";
 import EditorToolbar from "./EditorToolbar";
+import AiAssistantMenu from "./AiAssistantMenu";
 
 export default function RichTextEditor({
+  documentId,
+  currentUser,
   content,
   onChange,
   isEditable = true,
@@ -13,22 +20,55 @@ export default function RichTextEditor({
   isHistoryOpen,
   onToggleHistory,
   onSelectionChange,
+  workspaceId,
 }) {
-  const parseInitialContent = (rawContent) => {
-    if (!rawContent && rawContent !== "") return "";
-    if (typeof rawContent === "object") return rawContent;
-    try {
-      const parsed = JSON.parse(rawContent);
-      if (parsed && typeof parsed === "object") return parsed;
-    } catch {
-      // Fallback to HTML / plain string
+  const [provider, setProvider] = useState(null);
+  const [isAiOpen, setIsAiOpen] = useState(false);
+
+  // Initialize Yjs Document and WebsocketProvider
+  const ydoc = useMemo(() => new Y.Doc(), [documentId]);
+
+  useEffect(() => {
+    if (!documentId) return;
+
+    // We assume backend runs on the same host but we can explicitly use window.location
+    const wsUrl = process.env.NODE_ENV === "development" 
+      ? `ws://localhost:5000/yjs/${documentId}`
+      : `wss://${window.location.host}/yjs/${documentId}`;
+      
+    const wsProvider = new WebsocketProvider(wsUrl, documentId, ydoc, {
+      connect: true,
+    });
+
+    if (currentUser) {
+      wsProvider.awareness.setLocalStateField("user", {
+        name: currentUser.name || "Anonymous",
+        color: currentUser.color || "#" + Math.floor(Math.random()*16777215).toString(16),
+      });
     }
-    return rawContent || "";
-  };
+
+    setProvider(wsProvider);
+
+    return () => {
+      wsProvider.destroy();
+      ydoc.destroy();
+    };
+  }, [documentId, ydoc, currentUser]);
 
   const editor = useEditor({
-    extensions: defaultExtensions,
-    content: parseInitialContent(content),
+    extensions: [
+      ...defaultExtensions,
+      Collaboration.configure({
+        document: ydoc,
+      }),
+      CollaborationCursor.configure({
+        provider: provider,
+        user: {
+          name: currentUser?.name || "Anonymous",
+          color: currentUser?.color || "#3b82f6",
+        },
+      }),
+    ],
     editable: isEditable,
     editorProps: {
       attributes: {
@@ -49,34 +89,17 @@ export default function RichTextEditor({
         toPos: to,
       });
     },
-  });
+  }, [provider]); // Re-create editor when provider is ready
 
   // Dynamic Editable Sync: Update TipTap editable state whenever isEditable prop changes
-  // (e.g. after permissions load or role changes from VIEWER to OWNER/EDITOR)
   useEffect(() => {
     if (editor) {
       editor.setEditable(isEditable);
     }
   }, [isEditable, editor]);
 
-  // Sync content when document changes from external props (e.g. initial load or remote socket update),
-  // but DO NOT set content if the user is actively focused and typing in the editor.
-  useEffect(() => {
-    if (editor && content !== undefined && content !== null && !editor.isFocused) {
-      const parsed = parseInitialContent(content);
-      const currentJSON = JSON.stringify(editor.getJSON());
-      const newJSON = typeof parsed === "object" ? JSON.stringify(parsed) : null;
-
-      if (newJSON && currentJSON !== newJSON) {
-        editor.commands.setContent(parsed, false);
-      } else if (typeof parsed === "string" && parsed !== "" && editor.getHTML() !== parsed) {
-        editor.commands.setContent(parsed, false);
-      }
-    }
-  }, [content, editor]);
-
   return (
-    <div className="flex flex-col rounded-3xl border border-slate-200/80 bg-white/90 backdrop-blur-md shadow-2xl shadow-slate-200/60 overflow-hidden transition-all duration-300">
+    <div className="relative flex flex-col rounded-3xl border border-slate-200/80 bg-white/90 backdrop-blur-md shadow-2xl shadow-slate-200/60 overflow-hidden transition-all duration-300">
       <EditorToolbar
         editor={editor}
         isCommentsOpen={isCommentsOpen}
@@ -84,7 +107,19 @@ export default function RichTextEditor({
         unreadCommentsCount={unreadCommentsCount}
         isHistoryOpen={isHistoryOpen}
         onToggleHistory={onToggleHistory}
+        isAiOpen={isAiOpen}
+        onToggleAi={() => setIsAiOpen(!isAiOpen)}
       />
+      
+      {isAiOpen && workspaceId && (
+        <AiAssistantMenu 
+          editor={editor} 
+          workspaceId={workspaceId} 
+          documentId={documentId} 
+          onClose={() => setIsAiOpen(false)} 
+        />
+      )}
+
       <div
         className="flex-1 overflow-y-auto bg-white/50 p-2 cursor-text"
         onClick={() => {

@@ -26,6 +26,11 @@ import {
   Check,
   MessageSquare,
   History,
+  Table,
+  Image as ImageIcon,
+  CheckSquare,
+  Highlighter,
+  Sparkles,
 } from "lucide-react";
 
 export default function EditorToolbar({
@@ -35,6 +40,8 @@ export default function EditorToolbar({
   unreadCommentsCount = 0,
   isHistoryOpen,
   onToggleHistory,
+  isAiOpen,
+  onToggleAi,
 }) {
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
@@ -309,6 +316,57 @@ export default function EditorToolbar({
         >
           <Minus className="h-4 w-4" />
         </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleTaskList().run()}
+          title="Task List"
+          className={`rounded-lg p-1.5 transition-colors ${
+            editor.isActive("taskList")
+              ? "bg-indigo-100 text-indigo-700 font-bold"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <CheckSquare className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Advanced Group (Table, Image, Highlight) */}
+      <div className="flex items-center gap-0.5 border-r border-slate-200/80 px-1.5">
+        <button
+          type="button"
+          onClick={() =>
+            editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+          }
+          title="Insert Table"
+          className="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-slate-100"
+        >
+          <Table className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const url = window.prompt("Enter image URL:");
+            if (url) {
+              editor.chain().focus().setImage({ src: url }).run();
+            }
+          }}
+          title="Insert Image"
+          className="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-slate-100"
+        >
+          <ImageIcon className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleHighlight().run()}
+          title="Highlight"
+          className={`rounded-lg p-1.5 transition-colors ${
+            editor.isActive("highlight")
+              ? "bg-indigo-100 text-indigo-700 font-bold"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <Highlighter className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Link & Clear Formatting Group */}
@@ -383,6 +441,22 @@ export default function EditorToolbar({
                 {unreadCommentsCount}
               </span>
             )}
+          </button>
+        )}
+
+        {onToggleAi && (
+          <button
+            type="button"
+            onClick={onToggleAi}
+            title="Ask AI Assistant"
+            className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold transition-all ${
+              isAiOpen
+                ? "bg-purple-600 text-white shadow-sm"
+                : "bg-purple-50 text-purple-600 hover:bg-purple-100"
+            }`}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Ask AI</span>
           </button>
         )}
       </div>

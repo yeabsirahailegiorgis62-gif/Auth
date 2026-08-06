@@ -42,6 +42,9 @@ const favoriteRoutes = require("./routes/favorite.routes");
 const activityRoutes = require("./routes/activity.routes");
 const notificationRoutes = require("./routes/notification.routes");
 const exportImportRoutes = require("./routes/exportImport.routes");
+const workspaceRoutes = require("./routes/workspace.routes");
+const folderRoutes = require("./routes/folder.routes");
+const tagRoutes = require("./routes/tag.routes");
 
 app.disable("x-powered-by");
 
@@ -73,6 +76,9 @@ app.use("/api", exportImportRoutes);
 app.use("/api/documents/:documentId/comments", commentRoutes);
 app.use("/api/documents/:documentId/revisions", revisionRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/workspaces", workspaceRoutes);
+app.use("/api/workspaces/:workspaceId/folders", folderRoutes);
+app.use("/api/workspaces/:workspaceId/tags", tagRoutes);
 
 app.get("/", (req, res) => {
   res.json({

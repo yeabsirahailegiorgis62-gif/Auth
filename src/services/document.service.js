@@ -12,7 +12,7 @@ class AppError extends Error {
 }
 
 class DocumentService {
-  async createDocument(userId, { title, content }) {
+  async createDocument(userId, { title, content, folderId, workspaceId }) {
     const serializedContent =
       typeof content === "object" ? JSON.stringify(content) : content || "";
 
@@ -20,6 +20,8 @@ class DocumentService {
       title: title && title.trim() ? title.trim() : "Untitled Document",
       content: serializedContent,
       ownerId: userId,
+      folderId,
+      workspaceId,
     });
 
     await activityService.logActivity(userId, document.id, "DOCUMENT_CREATED", {
@@ -29,7 +31,7 @@ class DocumentService {
     return document;
   }
 
-  async getUserDocuments(userId, { search, filter, limit }) {
+  async getUserDocuments(userId, { search, filter, limit, folderId, tagId }) {
     if (filter === "shared") {
       const shares = await prisma.documentShare.findMany({
         where: { userId },
@@ -63,6 +65,13 @@ class DocumentService {
         documents = documents.slice(0, parseInt(limit, 10));
       }
 
+      if (folderId) {
+        documents = documents.filter((d) => d.folderId === folderId);
+      }
+      if (tagId) {
+        documents = documents.filter((d) => d.tags && d.tags.some(t => t.tagId === tagId));
+      }
+
       return documents;
     }
 
@@ -70,6 +79,8 @@ class DocumentService {
       search,
       filter,
       limit,
+      folderId,
+      tagId,
     });
 
     return owned.map((doc) => ({

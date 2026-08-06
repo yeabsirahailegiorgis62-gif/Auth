@@ -88,22 +88,9 @@ export default function DocumentEditor() {
   // Comments Hook
   const comments = useComments(id, socket);
 
-  // Socket.IO Collaboration Hook
-  const handleRemoteUpdate = useCallback((newRemoteContent, updatedBy) => {
-    setContent(newRemoteContent);
-  }, []);
+  const [connectionStatus, setConnectionStatus] = useState("connected"); // Yjs handles this under the hood, we can just say connected for now
 
-  const handleStateSync = useCallback((syncData) => {
-    if (syncData.content) {
-      setContent(syncData.content);
-    }
-  }, []);
-
-  const { emitUpdate, connectionStatus } = useDocumentCollaboration({
-    documentId: id,
-    onRemoteUpdate: handleRemoteUpdate,
-    onStateSync: handleStateSync,
-  });
+  // Socket.IO Presence Hook (Still useful for typing indicator if we want, but Yjs awareness covers cursors)
 
   // Socket.IO Presence Hook
   const {
@@ -202,8 +189,6 @@ export default function DocumentEditor() {
     // Schedule debounced background autosave
     scheduleSave(newJsonContent, title);
 
-    // Broadcast content edit & typing indicator to live room
-    emitUpdate(newJsonContent);
     notifyTyping();
   };
 
@@ -439,12 +424,11 @@ export default function DocumentEditor() {
               onMouseMove={handleMouseMove}
               className="relative rounded-3xl"
             >
-              <LiveCursorsOverlay
-                remoteCursors={remoteCursors}
-                editorContainerRef={editorContainerRef}
-              />
+              {/* We no longer need LiveCursorsOverlay because TipTap CollaborationCursor handles it internally! */}
 
               <RichTextEditor
+                documentId={id}
+                currentUser={user}
                 content={content}
                 onChange={handleContentChange}
                 isEditable={canEdit}
@@ -460,6 +444,7 @@ export default function DocumentEditor() {
                   if (isCommentsSidebarOpen) setIsCommentsSidebarOpen(false);
                 }}
                 onSelectionChange={handleSelectionChange}
+                workspaceId={document?.workspaceId}
               />
             </div>
           </div>

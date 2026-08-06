@@ -65,3 +65,5 @@ export async function searchUsers(query) {
   const response = await api.get("/user/search", { params: { q: query } });
   return response.data;
 }
+
+

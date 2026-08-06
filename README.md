@@ -1,6 +1,17 @@
 # CollabWrite Studio - Enterprise Real-Time Collaborative Document Platform
 
-> A production-grade, distributed real-time collaborative document platform inspired by Google Docs and Notion. Built with Node.js, Express.js, Prisma ORM, PostgreSQL, Socket.IO v4, React 18, TipTap v2, and Tailwind CSS.
+> A production-grade, distributed real-time collaborative document platform inspired by Google Docs, Notion, and Linear. Built with Node.js, Express.js, Prisma ORM, PostgreSQL, Socket.IO v4, React 19, TipTap, Framer Motion, and Tailwind CSS.
+>
+> **Developed by Yeabsira Hailegiorgis**
+
+---
+
+## 🌟 Phase 2 Highlights
+- **Enterprise Commercial Landing Page (`/`)**: Production marketing website introducing features, workflow, interactive live workspace preview, counters, FAQ, and theme toggling. Redirects authenticated users automatically to `/dashboard`.
+- **Verified Authentication**: Email verification via secure SHA-256 tokens, unverified login protection, token expiration, and resend workflows.
+- **Google OAuth Auto-Verification**: One-click Google sign-in with automatic email verification and session generation.
+- **Device Session Management**: Inspect active sessions (device user-agent, IP, timestamp) and trigger remote session revocation or "Logout All Devices".
+- **Password Recovery**: Forgot password email workflow and secure token password reset.
 
 ---
 
@@ -8,9 +19,9 @@
 
 - **Swagger / OpenAPI Documentation**: `http://localhost:5000/api/docs`
 - **System Health & Telemetry**: `http://localhost:5000/health`
-- **[System Architecture Guide](file:///home/yeabsira-hailegiorgis/Documents/2nd%20Project/auth-system/docs/ARCHITECTURE.md)** (`docs/ARCHITECTURE.md`)
-- **[Database Schema & Indexing Guide](file:///home/yeabsira-hailegiorgis/Documents/2nd%20Project/auth-system/docs/DATABASE.md)** (`docs/DATABASE.md`)
-- **[5-Minute Evaluator Demo Script](file:///home/yeabsira-hailegiorgis/Documents/2nd%20Project/auth-system/docs/DEMO_GUIDE.md)** (`docs/DEMO_GUIDE.md`)
+- **[System Architecture Guide](file:///home/yeabsira-hailegiorgis/Documents/Auth/auth-system/docs/ARCHITECTURE.md)** (`docs/ARCHITECTURE.md`)
+- **[Database Schema & Indexing Guide](file:///home/yeabsira-hailegiorgis/Documents/Auth/auth-system/docs/DATABASE.md)** (`docs/DATABASE.md`)
+- **[5-Minute Evaluator Demo Script](file:///home/yeabsira-hailegiorgis/Documents/Auth/auth-system/docs/DEMO_GUIDE.md)** (`docs/DEMO_GUIDE.md`)
 
 ---
 

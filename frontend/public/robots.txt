@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /documents/
+Disallow: /api/
+
+Sitemap: https://collabwrite.studio/sitemap.xml
